@@ -2,3 +2,5 @@ node_modules/
 db/
 rabbitmq_data/
 .env
+service-account-key.json
+
