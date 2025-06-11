@@ -30,7 +30,10 @@ async function updateSheet(data) {
       },
     });
   
-    return ':white_tick: Data added to Google Sheet.';
+    return {
+      status: 200,
+      message: "Job scraped successfully and inserted into google sheets"
+    };
   }catch(e){
     return e
   }
