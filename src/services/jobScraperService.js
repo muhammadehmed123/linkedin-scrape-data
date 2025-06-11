@@ -3,24 +3,24 @@ const { updateSheet } = require('../utils/sheetUpdater');
 require('dotenv').config();
 const axios = require('axios');
 
-
-
 const scrapeJobs = async ({
     keywords,
     location,
-    isRemote = true
+    datePosted,
+    isRemote
 }) => {
     console.log(keywords, location, isRemote)
     try {
 
         const options = {
             method: 'GET',
-            url: 'https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d',
+            url: 'https://linkedin-data-api.p.rapidapi.com/search-jobs',
             params: {
-                offset: '0',
-                title_filter: keywords,
-                location_filter: location,
-                remote: isRemote?.toString()
+                keywords,
+                locationId:location,
+                datePosted,
+                onsiteRemote: isRemote?"remote":"onSite",
+                sort: 'mostRecent'
             },
             headers: {
                 'x-rapidapi-key': process.env.RAPIDAPI_KEY,
@@ -28,8 +28,10 @@ const scrapeJobs = async ({
             }
         };
         const response = await axios.request(options);
-		return (response.data);
+        const updatedSheet = updateSheet(response.data.data)
+        return updatedSheet;
     } catch (e) {
+        console.log(e)
         return {
             status: 500,
             message: e.message

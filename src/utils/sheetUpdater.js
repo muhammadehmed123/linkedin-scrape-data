@@ -19,9 +19,9 @@ async function updateSheet(data) {
 
     // Convert array of objects to array of arrays
     // Assumes each object has the same keys: title, company, location
-    const values = data.map(item => [item.title, item.company, item.location]);
+    const values = data.map(item => [item.title, item.company.name, item.location]);
   
-    await sheets.spreadsheets.values.append({
+    sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
       range: 'Sheet1',
       valueInputOption: 'USER_ENTERED',
