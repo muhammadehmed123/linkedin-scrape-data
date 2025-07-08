@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const LocationSchema = new mongoose.Schema({
   linkedinText: { type: String, default: '' },
@@ -98,4 +98,4 @@ const JobSchema = new mongoose.Schema({
   applicantTrackingSystem: { type: String, default: '' }
 }, { timestamps: true });
 
-export default mongoose.model('Job', JobSchema);
+module.exports = mongoose.model('Job', JobSchema);

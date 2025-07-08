@@ -1,37 +1,21 @@
-import express from 'express';
-import { fetchJobsFromApify } from '../config/apifyService.js';
-import Job from '../models/Job.js';
 
+const express = require('express');
 const router = express.Router();
+const apifyController = require('../controllers/apifyController');
 
-router.get('/fetch-and-save1', async (req, res) => {
-  try {
-    // You can build input from req.query or use defaults
-    const input = {
-      easyApply: false,
-      employmentType: ["full-time", "part-time"],
-      experienceLevel: ["executive", "director", "mid-senior", "associate"],
-      jobTitles: ["Test Automation", "Web Development", "AI/ML", "UI/UX"],
-      locations: ["Saudi Arabia", "United Arab Emirates"],
-      maxItems: 50,
-      postedLimit: "24h",
-      sortBy: "date",
-      under10Applicants: false,
-      workplaceType: ["remote"]
-    };
+// Fetch jobs from Apify and save as raw JSON
+router.get('/apify', apifyController.fetchAndSaveJobs);
 
-    const jobs = await fetchJobsFromApify(input);
+// Return processed jobs as JSON
+// router.get('/apify/processed', apifyController.getProcessedJobs);
 
-    // Save jobs to MongoDB (skip duplicates by unique index on id)
-    const result = await Job.insertMany(jobs, { ordered: false }).catch(e => {
-      // Ignore duplicate key errors
-      if (e.code !== 11000) throw e;
-    });
+// Run AIML processing and return result
+// Run scoring (process raw JSON and output scored JSON/CSV)
+router.get('/apify/score', apifyController.scoreJobs);
 
-    res.json({ message: 'Jobs fetched and saved', count: jobs.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Get scored jobs as JSON
+router.get('/apify/scored', apifyController.getScoredJobs);
 
-export default router;
+
+
+module.exports = router;

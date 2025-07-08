@@ -10,27 +10,35 @@ const PORT = 3001;
 
 app.listen(PORT, () => {
   console.log('\n================= API Endpoints =================');
-console.log(`🚀 Server running on:         http://localhost:${PORT}`);
-console.log('-------------------------------------------------');
-console.log(`🔑 Register:                 POST   /api/signup`);
-console.log(`🔑 Login:                    POST   /api/login`);
-console.log('-------------------------------------------------');
-console.log(`📡 Fetch & Save Jobs:        GET    /api/fetch-and-save`);
-console.log(`   (with params)             GET    /api/fetch-and-save?limit=10&location_filter="India"&advanced_title_filter="UI/UX"`);
-console.log(`📥 Export Last Batch as CSV: GET    /api/export-csv`);
-console.log('-------------------------------------------------');
-console.log(`📁 Raw API data saved at:    /backend/data/last_api_response.json`);
-console.log('=================================================\n');
+  console.log(`🚀 Server running on:         http://localhost:${PORT}`);
+  console.log('-------------------------------------------------');
+  console.log(`🔑 Register:                 POST   /api/signup`);
+  console.log(`🔑 Login:                    POST   /api/login`);
+  console.log('-------------------------------------------------');
+  console.log(`📡 Fetch & Save Jobs:        GET    /api/apify`);
+  console.log(`   (fetches from Apify, saves to raw JSON)`);
+  console.log(`📊 Run Scoring/Processing:   GET    /api/apify/score`);
+  console.log(`   (runs Python script, saves scored output)`);
+  console.log(`📁 Get Processed Jobs:       GET    /api/apify/processed`);
+  console.log(`   (returns processed jobs as JSON)`);
+  console.log(`📈 Get Scored Jobs:          GET    /api/apify/scored`);
+  console.log(`   (returns scored jobs as JSON)`);
+  console.log('-------------------------------------------------');
+  console.log(`📥 Export Last Batch as CSV: GET    /api/export-csv`);
+  console.log('-------------------------------------------------');
+  console.log(`📁 Raw API data saved at:    /data/apify_jobs_raw.json`);
+  console.log(`📁 Scored data saved at:     /data/scored_jobs_output.json`);
+  console.log('=================================================\n');
 });
 
 // import { ApifyClient } from 'apify-client';
 
-// // import { ApifyClient } from 'apify-client';
+// import { ApifyClient } from 'apify-client';
 
 // // Initialize the ApifyClient with your Apify API token
 // // Replace the '<YOUR_API_TOKEN>' with your token
 // const client = new ApifyClient({
-//     // token: 'apify_api_U9oFD8TQcm2gTug0KVYjb7jr51WS8F2ENbZ0',
+//     token: 'apify_api_U9oFD8TQcm2gTug0KVYjb7jr51WS8F2ENbZ0',
 // });
 
 // // Prepare Actor input
@@ -65,20 +73,7 @@ console.log('=================================================\n');
 //         "remote"
 //     ]
 // }
-// // {
-// //     "jobTitles": [
-// //         "software engineer",
 
-// //     ],
-// //     "locations": [
-// //         "New York",
-// //         "California"
-// //     ],
-// //     "maxItems": 10,
-// //     "sortBy": "date",
-// //     "postedLimit": "24h",
-// //     "remote": true,
-// // };
 
 // // Run the Actor and wait for it to finish
 // const run = await client.actor("harvestapi/linkedin-job-search").call(input);
