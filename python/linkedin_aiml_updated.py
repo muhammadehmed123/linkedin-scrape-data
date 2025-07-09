@@ -37,7 +37,7 @@ else:
 df = pd.json_normalize(jobs)
 
 # Filter only remote jobs
-df = df[df['workRemoteAllowed'] == True].reset_index(drop=True)
+# df = df[df['workRemoteAllowed'] == True].reset_index(drop=True)
 
 # Preview
 print(f" Remote jobs found: {df.shape[0]}")
@@ -195,36 +195,36 @@ df['kpi_remote'] = df.apply(
 
 """## KPI 6: Salary Attractiveness KPI"""
 
-def salary_score(row):
-    salary = row.get('salary', {})
-    min_salary = salary.get('min')
-    max_salary = salary.get('max')
+# def salary_score(row):
+#     salary = row.get('salary', {})
+#     min_salary = salary.get('min')
+#     max_salary = salary.get('max')
 
-    try:
-        if min_salary is not None and max_salary is not None:
-            avg_salary = (float(min_salary) + float(max_salary)) / 2
-        elif min_salary is not None:
-            avg_salary = float(min_salary)
-        elif max_salary is not None:
-            avg_salary = float(max_salary)
-        else:
-            return 0.5  # Missing salary info
-    except:
-        return 0.5
+#     try:
+#         if min_salary is not None and max_salary is not None:
+#             avg_salary = (float(min_salary) + float(max_salary)) / 2
+#         elif min_salary is not None:
+#             avg_salary = float(min_salary)
+#         elif max_salary is not None:
+#             avg_salary = float(max_salary)
+#         else:
+#             return 0.5  # Missing salary info
+#     except:
+#         return 0.5
 
-    if avg_salary >= 100:  # High hourly/daily rate (e.g., contractor)
-        return 1.0
-    elif avg_salary >= 50:
-        return 0.8
-    elif avg_salary >= 30:
-        return 0.6
-    elif avg_salary >= 15:
-        return 0.4
-    else:
-        return 0.2
+#     if avg_salary >= 100:  # High hourly/daily rate (e.g., contractor)
+#         return 1.0
+#     elif avg_salary >= 50:
+#         return 0.8
+#     elif avg_salary >= 30:
+#         return 0.6
+#     elif avg_salary >= 15:
+#         return 0.4
+#     else:
+#         return 0.2
 
-df['kpi_salary'] = df.apply(salary_score, axis=1)
-# display(df[['title', 'kpi_salary']].head())
+# df['kpi_salary'] = df.apply(salary_score, axis=1)
+# # display(df[['title', 'kpi_salary']].head())
 
 """## KPI 7: Company Size KPI"""
 

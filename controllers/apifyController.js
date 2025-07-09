@@ -63,3 +63,60 @@ exports.scoreJobs = async (req, res) => {
       res.status(500).json({ message: 'Error reading scored jobs', error: error.message });
     }
   };
+
+// Filter and return only selected fields from raw Apify jobs
+toSafe = (obj, path, fallback = null) => {
+  try {
+    return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+  } catch {
+    return fallback;
+  }
+};
+
+exports.getFilteredJobs = (req, res) => {
+  try {
+    const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+    const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+    const filtered = jobs.map(job => ({
+      id: job.id,
+      title: job.title,
+      linkedinUrl: job.linkedinUrl,
+      postedDate: job.postedDate,
+      expireAt: job.expireAt,
+      descriptionText: job.descriptionText,
+      employmentType: job.employmentType,
+      workplaceType: job.workplaceType,
+      easyApplyUrl: job.easyApplyUrl,
+      applicants: job.applicants,
+      views: job.views,
+      jobApplicationLimitReached: job.jobApplicationLimitReached,
+      applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+      salary: toSafe(job, 'salary.text'),
+      company: {
+        linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+        logo: toSafe(job, 'company.logo'),
+        website: toSafe(job, 'company.website'),
+        name: toSafe(job, 'company.name'),
+        employeeCount: toSafe(job, 'company.employeeCount'),
+        followerCount: toSafe(job, 'company.followerCount'),
+        description: toSafe(job, 'company.description'),
+        specialities: toSafe(job, 'company.specialities', []),
+        industries: toSafe(job, 'company.industries', []),
+        locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+          city: toSafe(loc, 'parsed.city'),
+          state: toSafe(loc, 'parsed.state'),
+          country: toSafe(loc, 'parsed.country')
+        }))
+      },
+      // location: {
+      //   city: toSafe(job, 'location.parsed.city'),
+      //   state: toSafe(job, 'location.parsed.state'),
+      //   country: toSafe(job, 'location.parsed.country')
+      // }
+    }));
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error filtering jobs:', error);
+    res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+  }
+};
