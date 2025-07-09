@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const apifyController = require('../controllers/apifyController');
-const apiGetFilteredJobs = require('../controllers/apiGetFilteredJobs');
+const authMiddleware = require('../middleware/authMiddleware');
 
 
 // Fetch jobs from Apify and save as raw JSON
@@ -19,7 +19,9 @@ router.get('/apify/score', apifyController.scoreJobs);
 router.get('/apify/scored', apifyController.getScoredJobs);
 
 // Return filtered jobs with only selected fields
-router.get('/apify/filtered', apiGetFilteredJobs.getFilteredJobs);
+router.get('/apify/filtered', apifyController.getFilteredJobs);
 
+
+router.post('/save-jobs', authMiddleware, apifyController.saveJobs);
 
 module.exports = router;
