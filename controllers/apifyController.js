@@ -64,14 +64,264 @@ exports.scoreJobs = async (req, res) => {
     }
   };
 
-// Filter and return only selected fields from raw Apify jobs
-toSafe = (obj, path, fallback = null) => {
-  try {
-    return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
-  } catch {
-    return fallback;
-  }
-};
+// // Utility to safely access nested properties
+// function toSafe(obj, path, fallback = null) {
+//   try {
+//     return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+//   } catch {
+//     return fallback;
+//   }
+// }
+
+// // List of required countries (lowercase for comparison)
+// const requiredCountries = [
+//   "saudi arabia",
+//   "united arab emirates",
+//   "united states",
+//   "uk",
+//   "united kingdom"
+// ];
+// exports.getFilteredJobs = (req, res) => {
+//   try {
+//     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+//     const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+
+//     // Debug: Track duplicate IDs
+//     const seenIds = new Set();
+//     const duplicateIds = [];
+//     const uniqueJobs = jobs.filter(job => {
+//       if (seenIds.has(job.id)) {
+//         duplicateIds.push(job.id);
+//         return false;
+//       }
+//       seenIds.add(job.id);
+//       return true;
+//     });
+
+//     // Debug: Track jobs excluded by country
+//     const excludedByCountryJobs = [];
+//     const filtered = uniqueJobs.filter(job => {
+//       const locations = toSafe(job, 'company.locations', []);
+//       if (!Array.isArray(locations)) {
+//         excludedByCountryJobs.push(job);
+//         return false;
+//       }
+//       const match = locations.some(loc => {
+//         const country = (toSafe(loc, 'parsed.country', '') || '').toLowerCase();
+//         return requiredCountries.includes(country);
+//       });
+//       if (!match) excludedByCountryJobs.push(job);
+//       return match;
+//     }).map(job => ({
+//       id: job.id,
+//       title: job.title,
+//       linkedinUrl: job.linkedinUrl,
+//       postedDate: job.postedDate,
+//       expireAt: job.expireAt,
+//       descriptionText: job.descriptionText,
+//       employmentType: job.employmentType,
+//       workplaceType: job.workplaceType,
+//       easyApplyUrl: job.easyApplyUrl,
+//       applicants: job.applicants,
+//       views: job.views,
+//       jobApplicationLimitReached: job.jobApplicationLimitReached,
+//       applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+//       salary: toSafe(job, 'salary.text'),
+//       company: {
+//         linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+//         logo: toSafe(job, 'company.logo'),
+//         website: toSafe(job, 'company.website'),
+//         name: toSafe(job, 'company.name'),
+//         employeeCount: toSafe(job, 'company.employeeCount'),
+//         followerCount: toSafe(job, 'company.followerCount'),
+//         description: toSafe(job, 'company.description'),
+//         specialities: toSafe(job, 'company.specialities', []),
+//         industries: toSafe(job, 'company.industries', []),
+//         locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+//           city: toSafe(loc, 'parsed.city'),
+//           state: toSafe(loc, 'parsed.state'),
+//           country: toSafe(loc, 'parsed.country')
+//         }))
+//       }
+//     }));
+
+//     // Save filtered data to file
+//     const outPath = path.join(__dirname, '../data/filtered.json');
+//     fs.writeFileSync(outPath, JSON.stringify(filtered, null, 2), 'utf-8');
+
+//     // Debug output
+//     console.log('Duplicate IDs removed:', duplicateIds);
+//     console.log('Jobs excluded by country (IDs):', excludedByCountryJobs.map(j => j.id));
+//     // Optionally, print more details:
+//     // console.log('Jobs excluded by country (full):', excludedByCountryJobs);
+
+//     res.status(200).json({
+//       message: 'Filtered jobs saved to data/filtered.json',
+//       total_raw: jobs.length,
+//       total_unique: uniqueJobs.length,
+//       duplicates_removed: duplicateIds.length,
+//       duplicate_ids: duplicateIds, // for debug
+//       excluded_by_country: excludedByCountryJobs.length,
+//       excluded_by_country_ids: excludedByCountryJobs.map(j => j.id), // for debug
+//       total_saved: filtered.length
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+//   }
+// };
+// exports.getFilteredJobs = (req, res) => {
+//   try {
+//     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+//     const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+
+//     // Remove duplicates by id
+//     const seenIds = new Set();
+//     let duplicateCount = 0;
+//     const uniqueJobs = jobs.filter(job => {
+//       if (seenIds.has(job.id)) {
+//         duplicateCount++;
+//         return false;
+//       }
+//       seenIds.add(job.id);
+//       return true;
+//     });
+
+//     // Filter jobs by company.locations country
+//     let excludedByCountry = 0;
+//     const filtered = uniqueJobs.filter(job => {
+//       const locations = toSafe(job, 'company.locations', []);
+//       if (!Array.isArray(locations)) {
+//         excludedByCountry++;
+//         return false;
+//       }
+//       const match = locations.some(loc => {
+//         const country = (toSafe(loc, 'parsed.country', '') || '').toLowerCase();
+//         return requiredCountries.includes(country);
+//       });
+//       if (!match) excludedByCountry++;
+//       return match;
+//     }).map(job => ({
+//       id: job.id,
+//       title: job.title,
+//       linkedinUrl: job.linkedinUrl,
+//       postedDate: job.postedDate,
+//       expireAt: job.expireAt,
+//       descriptionText: job.descriptionText,
+//       employmentType: job.employmentType,
+//       workplaceType: job.workplaceType,
+//       easyApplyUrl: job.easyApplyUrl,
+//       applicants: job.applicants,
+//       views: job.views,
+//       jobApplicationLimitReached: job.jobApplicationLimitReached,
+//       applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+//       salary: toSafe(job, 'salary.text'),
+//       company: {
+//         linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+//         logo: toSafe(job, 'company.logo'),
+//         website: toSafe(job, 'company.website'),
+//         name: toSafe(job, 'company.name'),
+//         employeeCount: toSafe(job, 'company.employeeCount'),
+//         followerCount: toSafe(job, 'company.followerCount'),
+//         description: toSafe(job, 'company.description'),
+//         specialities: toSafe(job, 'company.specialities', []),
+//         industries: toSafe(job, 'company.industries', []),
+//         locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+//           city: toSafe(loc, 'parsed.city'),
+//           state: toSafe(loc, 'parsed.state'),
+//           country: toSafe(loc, 'parsed.country')
+//         }))
+//       }
+//     }));
+
+//     // Save filtered data to file
+//     const outPath = path.join(__dirname, '../data/filtered.json');
+//     fs.writeFileSync(outPath, JSON.stringify(filtered, null, 2), 'utf-8');
+
+//     // Respond with summary only
+//     res.status(200).json({
+//       message: 'Filtered jobs saved to data/filtered.json',
+//       total_raw: jobs.length,
+//       total_unique: uniqueJobs.length,
+//       duplicates_removed: duplicateCount,
+//       excluded_by_country: excludedByCountry,
+//       total_saved: filtered.length
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+//   }
+// };
+
+// // Filter and return only selected fields from raw Apify jobs
+// toSafe = (obj, path, fallback = null) => {
+//   try {
+//     return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+//   } catch {
+//     return fallback;
+//   }
+// };
+
+// function toSafe(obj, path, fallback = null) {
+//   try {
+//     return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+//   } catch {
+//     return fallback;
+//   }
+// }
+
+// exports.getFilteredJobs = (req, res) => {
+//   try {
+//     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+//     const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+//     const filtered = jobs.map(job => ({
+//       id: job.id,
+//       title: job.title,
+//       linkedinUrl: job.linkedinUrl,
+//       postedDate: job.postedDate,
+//       expireAt: job.expireAt,
+//       descriptionText: job.descriptionText,
+//       employmentType: job.employmentType,
+//       workplaceType: job.workplaceType,
+//       easyApplyUrl: job.easyApplyUrl,
+//       applicants: job.applicants,
+//       views: job.views,
+//       jobApplicationLimitReached: job.jobApplicationLimitReached,
+//       applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+//       salary: toSafe(job, 'salary.text'),
+//       company: {
+//         linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+//         logo: toSafe(job, 'company.logo'),
+//         website: toSafe(job, 'company.website'),
+//         name: toSafe(job, 'company.name'),
+//         employeeCount: toSafe(job, 'company.employeeCount'),
+//         followerCount: toSafe(job, 'company.followerCount'),
+//         description: toSafe(job, 'company.description'),
+//         specialities: toSafe(job, 'company.specialities', []),
+//         industries: toSafe(job, 'company.industries', []),
+//         locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+//           city: toSafe(loc, 'parsed.city'),
+//           state: toSafe(loc, 'parsed.state'),
+//           country: toSafe(loc, 'parsed.country')
+//         }))
+//       }
+//       // If you want location outside company, uncomment below:
+//       // location: {
+//       //   city: toSafe(job, 'location.parsed.city'),
+//       //   state: toSafe(job, 'location.parsed.state'),
+//       //   country: toSafe(job, 'location.parsed.country')
+//       // }
+//     }));
+
+//     // Save filtered data to file
+//     const outPath = path.join(__dirname, '../data/filtered.json');
+//     fs.writeFileSync(outPath, JSON.stringify(filtered, null, 2), 'utf-8');
+
+//     // Respond with only a success message
+//     res.status(200).json({ message: 'Filtered jobs saved to data/filtered.json' });
+//   } catch (error) {
+//     console.error('Error filtering jobs:', error);
+//     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+//   }
+// };
 
 // exports.getFilteredJobs = (req, res) => {
 //   try {
@@ -209,65 +459,3 @@ toSafe = (obj, path, fallback = null) => {
 
 
 // Utility to safely access nested properties
-function toSafe(obj, path, fallback = null) {
-  try {
-    return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
-  } catch {
-    return fallback;
-  }
-}
-
-exports.getFilteredJobs = (req, res) => {
-  try {
-    const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
-    const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
-    const filtered = jobs.map(job => ({
-      id: job.id,
-      title: job.title,
-      linkedinUrl: job.linkedinUrl,
-      postedDate: job.postedDate,
-      expireAt: job.expireAt,
-      descriptionText: job.descriptionText,
-      employmentType: job.employmentType,
-      workplaceType: job.workplaceType,
-      easyApplyUrl: job.easyApplyUrl,
-      applicants: job.applicants,
-      views: job.views,
-      jobApplicationLimitReached: job.jobApplicationLimitReached,
-      applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
-      salary: toSafe(job, 'salary.text'),
-      company: {
-        linkedinUrl: toSafe(job, 'company.linkedinUrl'),
-        logo: toSafe(job, 'company.logo'),
-        website: toSafe(job, 'company.website'),
-        name: toSafe(job, 'company.name'),
-        employeeCount: toSafe(job, 'company.employeeCount'),
-        followerCount: toSafe(job, 'company.followerCount'),
-        description: toSafe(job, 'company.description'),
-        specialities: toSafe(job, 'company.specialities', []),
-        industries: toSafe(job, 'company.industries', []),
-        locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
-          city: toSafe(loc, 'parsed.city'),
-          state: toSafe(loc, 'parsed.state'),
-          country: toSafe(loc, 'parsed.country')
-        }))
-      }
-      // If you want location outside company, uncomment below:
-      // location: {
-      //   city: toSafe(job, 'location.parsed.city'),
-      //   state: toSafe(job, 'location.parsed.state'),
-      //   country: toSafe(job, 'location.parsed.country')
-      // }
-    }));
-
-    // Save filtered data to file
-    const outPath = path.join(__dirname, '../data/filtered.json');
-    fs.writeFileSync(outPath, JSON.stringify(filtered, null, 2), 'utf-8');
-
-    // Respond with only a success message
-    res.status(200).json({ message: 'Filtered jobs saved to data/filtered.json' });
-  } catch (error) {
-    console.error('Error filtering jobs:', error);
-    res.status(500).json({ message: 'Error filtering jobs', error: error.message });
-  }
-};

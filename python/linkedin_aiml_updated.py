@@ -9,6 +9,8 @@ Original file is located at
 ## Importing Required Libraries and Loading the Data
 """
 
+import os
+
 
 import json
 import pandas as pd
@@ -17,7 +19,10 @@ import string
 from datetime import datetime, timezone
 # from IPython.print import print
 
-file_path = r'C:\Users\Dell\Desktop\linkedin project\linkedin-scrape-data\data\filtered.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
+# file_path = r'C:\Users\Dell\Desktop\linkedin project\linkedin-scrape-data\data\filtered.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
+base_dir = os.path.dirname(__file__)
+file_path = os.path.join(base_dir, '..', 'data', 'filtered.json')
+
 
 #Load JSON data
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -539,7 +544,7 @@ def assign_tier(score):
 df['tier'] = df['final_score'].apply(assign_tier)
 
 # print final results
-print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
+# print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
 
 # Replace all NaN with None (which becomes null in JSON)

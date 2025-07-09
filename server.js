@@ -17,10 +17,10 @@ app.listen(PORT, () => {
   console.log('-------------------------------------------------');
   console.log(`📡 Fetch & Save Jobs:        GET    /api/apify`);
   console.log(`   (fetches from Apify, saves to raw JSON)`);
+  console.log(`📁 Get Processed Jobs:       GET    /api/apify/filtered`);
+  console.log(`   (returns processed jobs as JSON)`);
   console.log(`📊 Run Scoring/Processing:   GET    /api/apify/score`);
   console.log(`   (runs Python script, saves scored output)`);
-  console.log(`📁 Get Processed Jobs:       GET    /api/apify/processed`);
-  console.log(`   (returns processed jobs as JSON)`);
   console.log(`📈 Get Scored Jobs:          GET    /api/apify/scored`);
   console.log(`   (returns scored jobs as JSON)`);
   console.log('-------------------------------------------------');
