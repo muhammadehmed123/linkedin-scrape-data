@@ -73,6 +73,150 @@ toSafe = (obj, path, fallback = null) => {
   }
 };
 
+// exports.getFilteredJobs = (req, res) => {
+//   try {
+//     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+//     const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+//     const filtered = jobs.map(job => ({
+//       id: job.id,
+//       title: job.title,
+//       linkedinUrl: job.linkedinUrl,
+//       postedDate: job.postedDate,
+//       expireAt: job.expireAt,
+//       descriptionText: job.descriptionText,
+//       employmentType: job.employmentType,
+//       workplaceType: job.workplaceType,
+//       easyApplyUrl: job.easyApplyUrl,
+//       applicants: job.applicants,
+//       views: job.views,
+//       jobApplicationLimitReached: job.jobApplicationLimitReached,
+//       applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+//       salary: toSafe(job, 'salary.text'),
+//       company: {
+//         linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+//         logo: toSafe(job, 'company.logo'),
+//         website: toSafe(job, 'company.website'),
+//         name: toSafe(job, 'company.name'),
+//         employeeCount: toSafe(job, 'company.employeeCount'),
+//         followerCount: toSafe(job, 'company.followerCount'),
+//         description: toSafe(job, 'company.description'),
+//         specialities: toSafe(job, 'company.specialities', []),
+//         industries: toSafe(job, 'company.industries', []),
+//         locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+//           city: toSafe(loc, 'parsed.city'),
+//           state: toSafe(loc, 'parsed.state'),
+//           country: toSafe(loc, 'parsed.country')
+//         }))
+//       },
+//       // location: {
+//       //   city: toSafe(job, 'location.parsed.city'),
+//       //   state: toSafe(job, 'location.parsed.state'),
+//       //   country: toSafe(job, 'location.parsed.country')
+//       // }
+//     }));
+//     res.json(filtered);
+//   } catch (error) {
+//     console.error('Error filtering jobs:', error);
+//     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+//   }
+// };
+
+// const path = require('path');
+// const fs = require('fs');
+
+// // Utility to safely access nested properties
+// function toSafe(obj, path, fallback = null) {
+//   try {
+//     return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+//   } catch {
+//     return fallback;
+//   }
+// }
+
+// // Utility to flatten an object to dot notation
+// function flatten(obj, prefix = '', res = {}) {
+//   for (const key in obj) {
+//     if (Object.prototype.hasOwnProperty.call(obj, key)) {
+//       const value = obj[key];
+//       const newKey = prefix ? `${prefix}.${key}` : key;
+//       if (Array.isArray(value)) {
+//         value.forEach((item, idx) => {
+//           flatten(item, `${newKey}.${idx}`, res);
+//         });
+//       } else if (value && typeof value === 'object' && value !== null) {
+//         flatten(value, newKey, res);
+//       } else {
+//         res[newKey] = value;
+//       }
+//     }
+//   }
+//   return res;
+// }
+
+// exports.getFilteredJobs = (req, res) => {
+//   try {
+//     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
+//     const jobs = JSON.parse(fs.readFileSync(rawPath, 'utf-8'));
+//     const filtered = jobs.map(job => ({
+//       id: job.id,
+//       title: job.title,
+//       linkedinUrl: job.linkedinUrl,
+//       postedDate: job.postedDate,
+//       expireAt: job.expireAt,
+//       descriptionText: job.descriptionText,
+//       employmentType: job.employmentType,
+//       workplaceType: job.workplaceType,
+//       easyApplyUrl: job.easyApplyUrl,
+//       applicants: job.applicants,
+//       views: job.views,
+//       jobApplicationLimitReached: job.jobApplicationLimitReached,
+//       applyMethod: toSafe(job, 'applyMethod.companyApplyUrl'),
+//       salary: toSafe(job, 'salary.text'),
+//       company: {
+//         linkedinUrl: toSafe(job, 'company.linkedinUrl'),
+//         logo: toSafe(job, 'company.logo'),
+//         website: toSafe(job, 'company.website'),
+//         name: toSafe(job, 'company.name'),
+//         employeeCount: toSafe(job, 'company.employeeCount'),
+//         followerCount: toSafe(job, 'company.followerCount'),
+//         description: toSafe(job, 'company.description'),
+//         specialities: toSafe(job, 'company.specialities', []),
+//         industries: toSafe(job, 'company.industries', []),
+//         locations: (toSafe(job, 'company.locations', []) || []).map(loc => ({
+//           city: toSafe(loc, 'parsed.city'),
+//           state: toSafe(loc, 'parsed.state'),
+//           country: toSafe(loc, 'parsed.country')
+//         }))
+//       },
+//       location: {
+//         city: toSafe(job, 'location.parsed.city'),
+//         state: toSafe(job, 'location.parsed.state'),
+//         country: toSafe(job, 'location.parsed.country')
+//       }
+//     }));
+
+//     // Flatten each job object
+//     const flatJobs = filtered.map(job => flatten(job));
+//     const outPath = path.join(__dirname, '../data/filtered.json');
+//     fs.writeFileSync(outPath, JSON.stringify(flatJobs, null, 2), 'utf-8');
+//     // Respond with only a success message, not the data
+//     res.status(200).json({ message: 'Filtered and flattened jobs saved to data/filtered.json' });
+//   } catch (error) {
+//     console.error('Error filtering jobs:', error);
+//     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+//   }
+// };
+
+
+// Utility to safely access nested properties
+function toSafe(obj, path, fallback = null) {
+  try {
+    return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
+  } catch {
+    return fallback;
+  }
+}
+
 exports.getFilteredJobs = (req, res) => {
   try {
     const rawPath = path.join(__dirname, '../data/apify_jobs_raw.json');
@@ -107,14 +251,21 @@ exports.getFilteredJobs = (req, res) => {
           state: toSafe(loc, 'parsed.state'),
           country: toSafe(loc, 'parsed.country')
         }))
-      },
+      }
+      // If you want location outside company, uncomment below:
       // location: {
       //   city: toSafe(job, 'location.parsed.city'),
       //   state: toSafe(job, 'location.parsed.state'),
       //   country: toSafe(job, 'location.parsed.country')
       // }
     }));
-    res.json(filtered);
+
+    // Save filtered data to file
+    const outPath = path.join(__dirname, '../data/filtered.json');
+    fs.writeFileSync(outPath, JSON.stringify(filtered, null, 2), 'utf-8');
+
+    // Respond with only a success message
+    res.status(200).json({ message: 'Filtered jobs saved to data/filtered.json' });
   } catch (error) {
     console.error('Error filtering jobs:', error);
     res.status(500).json({ message: 'Error filtering jobs', error: error.message });
