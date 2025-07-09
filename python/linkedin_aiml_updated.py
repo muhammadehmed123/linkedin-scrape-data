@@ -12,14 +12,12 @@ Original file is located at
 
 import json
 import pandas as pd
-import numpy as np
 import re
 import string
-from datetime import datetime
-from sklearn.preprocessing import MinMaxScaler
-# from IPython.display import display
+from datetime import datetime, timezone
+# from IPython.print import print
 
-file_path = r'data/apify_jobs_raw.json'  # Use relative path for Node.js compatibility
+file_path = r'C:\Users\Dell\Downloads\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
 
 #Load JSON data
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -41,7 +39,7 @@ df = df[df['workRemoteAllowed'] == True].reset_index(drop=True)
 
 # Preview
 print(f" Remote jobs found: {df.shape[0]}")
-# display(df[['id', 'title', 'company.name', 'location.linkedinText', 'workRemoteAllowed']].head())
+# print(df[['id', 'title', 'company.name', 'location.linkedinText', 'workRemoteAllowed']].head())
 
 """## KPI 1: Job Description Quality KPI"""
 
@@ -71,7 +69,7 @@ def jd_quality_score(text):
     return round(min(score, 1.0), 2)
 
 df['kpi_jd_quality'] = df['descriptionText'].apply(jd_quality_score)
-# display(df[['title', 'kpi_jd_quality']].head())
+# print(df[['title', 'kpi_jd_quality']].head())
 
 """## KPI 2: Domain Fit KPI (QA, Test Automation, Web Dev, AI, ML, UI/UX)
 
@@ -123,7 +121,7 @@ def domain_fit_score(row):
 df['kpi_domain_fit'] = df.apply(domain_fit_score, axis=1)
 
 # Show output
-# display(df[['title', 'kpi_domain_fit']].head())
+# print(df[['title', 'kpi_domain_fit']].head())
 
 """## KPI 3: Seniority Alignment KPI
 
@@ -146,8 +144,8 @@ def seniority_alignment_from_description(text):
 
 df['kpi_seniority_alignment'] = df['descriptionText'].apply(seniority_alignment_from_description)
 
-# Display results
-# display(df[['title', 'kpi_seniority_alignment']].head())
+# print results
+# print(df[['title', 'kpi_seniority_alignment']].head())
 
 """## KPI 4: Location Priority KPI"""
 
@@ -163,7 +161,7 @@ def location_priority_score(locations):
     return 0.5
 
 df['kpi_location_priority'] = df['company.locations'].apply(location_priority_score)
-# display(df[['title', 'company.locations', 'kpi_location_priority']].head())
+# print(df[['title', 'company.locations', 'kpi_location_priority']].head())
 
 """## KPI 5: Remote Type KPI"""
 
@@ -177,7 +175,7 @@ def remote_type_score(row):
         return 0.3
 
 df['kpi_remote_type'] = df.apply(remote_type_score, axis=1)
-# display(df[['title', 'workplaceType', 'kpi_remote_type']].head())
+# print(df[['title', 'workplaceType', 'kpi_remote_type']].head())
 
 def remote_score(remote_flag, loc_type):
     if remote_flag is True:
@@ -191,7 +189,7 @@ df['kpi_remote'] = df.apply(
     lambda row: remote_score(row.get('Remote', False), row.get('Location Type', '')),
     axis=1
 )
-# display(df[['Job Title', 'Remote', 'Location Type', 'kpi_remote']])
+# print(df[['Job Title', 'Remote', 'Location Type', 'kpi_remote']])
 
 """## KPI 6: Salary Attractiveness KPI"""
 
@@ -224,7 +222,7 @@ def salary_score(row):
         return 0.2
 
 df['kpi_salary'] = df.apply(salary_score, axis=1)
-# display(df[['title', 'kpi_salary']].head())
+# print(df[['title', 'kpi_salary']].head())
 
 """## KPI 7: Company Size KPI"""
 
@@ -254,7 +252,7 @@ def company_size_score(emp_count):
         return 1.0
 
 df['kpi_company_size'] = df['company.employeeCount'].apply(company_size_score)
-# display(df[['title', 'company.employeeCount', 'kpi_company_size']].head())
+# print(df[['title', 'company.employeeCount', 'kpi_company_size']].head())
 
 """## KPI 8: Company Popularity KPI"""
 
@@ -278,7 +276,7 @@ def company_popularity_score(followers):
         return 0.3
 
 df['kpi_company_popularity'] = df['company.followerCount'].apply(company_popularity_score)
-# display(df[['title', 'company.followerCount', 'kpi_company_popularity']].head())
+# print(df[['title', 'company.followerCount', 'kpi_company_popularity']].head())
 
 """## KPI 9: Company Industry Match KPI"""
 
@@ -295,7 +293,7 @@ def industry_match_score(industry_list):
     return round(min(match_count / 3.0, 1.0), 2)
 
 df['kpi_industry_match'] = df['company.industries'].apply(industry_match_score)
-# display(df[['title', 'company.industries', 'kpi_industry_match']].head())
+# print(df[['title', 'company.industries', 'kpi_industry_match']].head())
 
 """## KPI 10: Job Popularity KPI"""
 
@@ -317,7 +315,7 @@ def job_popularity_score(views):
         return 0.2
 
 df['kpi_job_popularity'] = df['views'].apply(job_popularity_score)
-# display(df[['title', 'views', 'kpi_job_popularity']].head())
+# print(df[['title', 'views', 'kpi_job_popularity']].head())
 
 """## KPI 11: Job Freshness KPI"""
 
@@ -344,7 +342,7 @@ def job_freshness_score(posted_date):
         return 0.2
 
 df['kpi_job_freshness'] = df['postedDate'].apply(job_freshness_score)
-# display(df[['title', 'postedDate', 'kpi_job_freshness']].head())
+# print(df[['title', 'postedDate', 'kpi_job_freshness']].head())
 
 """## KPI 12: Employment Type KPI"""
 
@@ -360,7 +358,7 @@ def employment_type_score(emp_type):
     return 0.4
 
 df['kpi_employment_type'] = df['employmentType'].apply(employment_type_score)
-# display(df[['title', 'employmentType', 'kpi_employment_type']].head())
+# print(df[['title', 'employmentType', 'kpi_employment_type']].head())
 
 """## KPI 13: Contact Info Present"""
 
@@ -375,7 +373,7 @@ def contact_info_score(text):
     return 0
 
 df['kpi_contact_info'] = df['descriptionText'].apply(contact_info_score)
-# display(df[['title', 'kpi_contact_info']].head())
+# print(df[['title', 'kpi_contact_info']].head())
 
 """## KPI 14: Skills Explicitness KPI"""
 
@@ -394,7 +392,7 @@ def skills_explicitness(text):
     return round(min(match_count / 5.0, 1.0), 2)
 
 df['kpi_skills_explicitness'] = df['descriptionText'].apply(skills_explicitness)
-# display(df[['title', 'kpi_skills_explicitness']].head())
+# print(df[['title', 'kpi_skills_explicitness']].head())
 
 """## KPI 15: Experience Threshold KPI"""
 
@@ -424,8 +422,8 @@ def experience_score_from_description(desc):
 # Apply the function
 df['kpi_experience_threshold'] = df['descriptionText'].apply(experience_score_from_description)
 
-# Display results
-# display(df[['title', 'descriptionText', 'kpi_experience_threshold']].head(5))
+# print results
+# print(df[['title', 'descriptionText', 'kpi_experience_threshold']].head(5))
 
 """## Final Step: Score Aggregation and Tier Assignment
 We now calculate the weighted score and classify each job as:
@@ -451,8 +449,8 @@ def assign_tier(score):
 
 df['tier'] = df['final_score'].apply(assign_tier)
 
-# Display final results
-# display(df[['title', 'final_score', 'tier'] + kpi_columns].head(10))
+# print final results
+print(df[['title', 'final_score', 'tier'] + kpi_columns].head(31))
 
 
 # Replace all NaN with None (which becomes null in JSON)
