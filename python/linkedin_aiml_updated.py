@@ -17,7 +17,7 @@ import string
 from datetime import datetime, timezone
 # from IPython.print import print
 
-file_path = r'C:\Users\Dell\Downloads\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
+file_path = r'C:\Users\Dell\Desktop\linkedin-scrape-data\data\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
 
 #Load JSON data
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -34,8 +34,6 @@ else:
 # Convert to DataFrame
 df = pd.json_normalize(jobs)
 
-# Filter only remote jobs
-df = df[df['workRemoteAllowed'] == True].reset_index(drop=True)
 
 # Preview
 print(f" Remote jobs found: {df.shape[0]}")
@@ -163,66 +161,116 @@ def location_priority_score(locations):
 df['kpi_location_priority'] = df['company.locations'].apply(location_priority_score)
 # print(df[['title', 'company.locations', 'kpi_location_priority']].head())
 
-"""## KPI 5: Remote Type KPI"""
 
-def remote_type_score(row):
-    workplace = str(row.get('workplaceType', '')).lower()
-    if 'remote' in workplace:
+'''## KPI 5: Company Specialties Match KPI'''
+
+target_specialties = [
+    # QA & Testing
+    "qa", "quality assurance", "test automation", "testing", "manual testing",
+    "selenium", "cypress", "playwright", "jmeter", "postman", "api testing",
+    "performance testing", "security testing", "regression testing", "functional testing",
+    "unit testing", "integration testing", "test case", "test plan", "jira", "testrail",
+    "agile testing", "bdd", "tdd", "cucumber", "qa engineer", "software tester",
+
+    # Web Development (Frontend & Backend)
+    "frontend", "backend", "web development", "web developer", "full stack",
+    "javascript", "typescript", "react", "angular", "vue.js", "html", "css",
+    "scss", "less", "bootstrap", "tailwind css", "webpack", "babel", "npm", "yarn",
+    "redux", "next.js", "nuxt.js", "svelte", "dom", "node.js", "express.js",
+    "python", "django", "flask", "java", "spring boot", "c#", ".net", "php",
+    "laravel", "ruby", "rails", "go", "golang", "rest api", "graphql",
+    "microservices", "api development", "web engineer",
+
+    # AI, Machine Learning & Data Science
+    "ai", "machine learning", "ml", "deep learning", "data science", "nlp",
+    "artificial intelligence", "computer vision", "reinforcement learning",
+    "data analysis", "data engineering", "mlops", "generative ai", "llm",
+    "large language model", "prompt engineering", "statistical modeling",
+    "predictive analytics", "r", "pytorch", "tensorflow", "keras", "scikit-learn",
+    "pandas", "numpy", "scipy", "data visualization", "tableau", "power bi",
+    "big data", "hadoop", "spark", "data scientist", "ml engineer", "ai engineer",
+
+    # UI/UX Design
+    "ui", "ux", "ui/ux", "user interface", "user experience", "design", "figma",
+    "user research", "usability testing", "wireframing", "prototyping", "design systems",
+    "information architecture", "interaction design", "visual design", "responsive design",
+    "accessibility", "adobe xd", "sketch", "invision", "user flows", "mockups",
+    "design thinking", "human-computer interaction", "product design", "service design",
+
+    # Software Engineering, DevOps, Cloud & Infrastructure
+    "software engineering", "devops", "cloud", "infrastructure",
+    "software development", "agile", "scrum", "kanban", "git", "version control",
+    "ci/cd", "continuous integration", "continuous delivery", "containerization",
+    "docker", "kubernetes", "aws", "azure", "gcp", "cloud computing",
+    "system design", "architecture", "linux", "unix", "scripting", "bash", "shell",
+    "automation", "security", "cybersecurity", "networking", "virtualization",
+    "ansible", "terraform", "jenkins", "gitlab ci", "github actions", "sre",
+    "site reliability engineering", "database", "sql", "nosql", "mongodb",
+    "postgresql", "mysql", "redis", "database management", "system administration",
+    "backend engineer", "network engineer", "solutions architect"
+]
+
+def company_specialties_score(specialties):
+    if not isinstance(specialties, list):
+        return 0.0
+    
+    matches = [spec for spec in specialties if spec.lower().strip() in target_specialties]
+    count = len(matches)
+
+    if count >= 3:
         return 1.0
-    elif 'hybrid' in workplace:
-        return 0.7
+    elif count == 2:
+        return 0.66
+    elif count == 1:
+        return 0.33
     else:
-        return 0.3
+        return 0.0
 
-df['kpi_remote_type'] = df.apply(remote_type_score, axis=1)
-# print(df[['title', 'workplaceType', 'kpi_remote_type']].head())
+df['kpi_company_specialties'] = df['company.specialities'].apply(company_specialties_score)
 
-def remote_score(remote_flag, loc_type):
-    if remote_flag is True:
-        return 1.0
-    elif isinstance(loc_type, str) and "HYBRID" in loc_type.upper():
-        return 0.8
-    else:
-        return 0.5
+# Preview the result
+# print(df[['title', 'company.specialities', 'kpi_company_specialties']].head())
 
-df['kpi_remote'] = df.apply(
-    lambda row: remote_score(row.get('Remote', False), row.get('Location Type', '')),
-    axis=1
-)
-# print(df[['Job Title', 'Remote', 'Location Type', 'kpi_remote']])
 
 """## KPI 6: Salary Attractiveness KPI"""
 
 def salary_score(row):
-    salary = row.get('salary', {})
-    min_salary = salary.get('min')
-    max_salary = salary.get('max')
+    salary_str = row.get('salary', '')
+    if not isinstance(salary_str, str) or salary_str.strip() == '':
+        return 0.5  # Missing or invalid salary string
 
+    # Remove commas and extract numbers
+    salary_str = salary_str.replace(',', '')
+    matches = re.findall(r'\d+', salary_str)
+
+    if not matches:
+        return 0.5
+
+    # Convert to float and calculate average
     try:
-        if min_salary is not None and max_salary is not None:
-            avg_salary = (float(min_salary) + float(max_salary)) / 2
-        elif min_salary is not None:
-            avg_salary = float(min_salary)
-        elif max_salary is not None:
-            avg_salary = float(max_salary)
+        salary_values = list(map(float, matches))
+        if len(salary_values) == 1:
+            avg_salary = salary_values[0]
         else:
-            return 0.5  # Missing salary info
+            avg_salary = sum(salary_values) / len(salary_values)
     except:
         return 0.5
 
-    if avg_salary >= 100:  # High hourly/daily rate (e.g., contractor)
+    # Salary scoring thresholds
+    if avg_salary >= 200000:
         return 1.0
-    elif avg_salary >= 50:
+    elif avg_salary >= 150000:
         return 0.8
-    elif avg_salary >= 30:
+    elif avg_salary >= 100000:
         return 0.6
-    elif avg_salary >= 15:
+    elif avg_salary >= 60000:
         return 0.4
     else:
         return 0.2
 
 df['kpi_salary'] = df.apply(salary_score, axis=1)
-# print(df[['title', 'kpi_salary']].head())
+# print(df[['title', 'salary', 'kpi_salary']].head())
+
 
 """## KPI 7: Company Size KPI"""
 
@@ -282,18 +330,21 @@ df['kpi_company_popularity'] = df['company.followerCount'].apply(company_popular
 
 preferred_industries = [
     "Information Technology", "Computer Software", "AI", "Internet", "Software Development",
-    "Staffing and Recruiting", "Web Development", "Machine Learning", "IT Services"
+    "Staffing and Recruiting", "Web Development", "Machine Learning", "IT Services",
+    "Fintech", "Edtech", "Healthtech", "Crypto", "Logistics", "Media",
+    "E-commerce", "Ride hailing"
 ]
 
 def industry_match_score(industry_list):
     if not isinstance(industry_list, list):
-        return 0.4
+        return 0.4  # fallback score
 
-    match_count = sum(1 for industry in industry_list if industry.lower() in [x.lower() for x in preferred_industries])
-    return round(min(match_count / 3.0, 1.0), 2)
+    matches = sum(1 for industry in industry_list if any(pref.lower() in industry.lower() for pref in preferred_industries))
+    return round(min(matches / 3.0, 1.0), 2)
 
 df['kpi_industry_match'] = df['company.industries'].apply(industry_match_score)
 # print(df[['title', 'company.industries', 'kpi_industry_match']].head())
+
 
 """## KPI 10: Job Popularity KPI"""
 
@@ -364,13 +415,23 @@ df['kpi_employment_type'] = df['employmentType'].apply(employment_type_score)
 
 def contact_info_score(text):
     if pd.isna(text):
-        return 0
+        return 0.0
+
     text = str(text)
+    score = 0.0
+
     email_pattern = r'[\w\.-]+@[\w\.-]+'
     phone_pattern = r'\+?\d[\d\-\s]{8,}'
-    if re.search(email_pattern, text) or re.search(phone_pattern, text):
-        return 1
-    return 0
+    url_pattern = r'https?://[^\s)]+'
+
+    if re.search(email_pattern, text):
+        score += 0.33
+    if re.search(phone_pattern, text):
+        score += 0.33
+    if re.search(url_pattern, text):
+        score += 0.33
+
+    return round(min(score, 1.0), 2)
 
 df['kpi_contact_info'] = df['descriptionText'].apply(contact_info_score)
 # print(df[['title', 'kpi_contact_info']].head())
@@ -378,10 +439,38 @@ df['kpi_contact_info'] = df['descriptionText'].apply(contact_info_score)
 """## KPI 14: Skills Explicitness KPI"""
 
 skills_keywords = [
-    "qa", "automation", "selenium", "cypress", "jmeter", "test case",
+    # QA & Testing Skills
+    "qa", "quality assurance", "automation", "test automation", "selenium", "cypress",
+    "playwright", "jmeter", "postman", "test case", "test plan", "bug tracking", "jira",
+    "api testing", "performance testing", "security testing", "regression testing",
+    "functional testing", "unit testing", "integration testing", "bdd", "tdd", "cucumber",
+    "pytest", "junit", "testng", "software testing",
+
+    # AI/Machine Learning/Data Science Skills
     "machine learning", "deep learning", "nlp", "ai", "ml", "pytorch", "tensorflow", "keras",
-    "react", "vue", "angular", "javascript", "html", "css", "node", "express", "flask", "django",
-    "figma", "adobe xd", "sketch", "wireframe", "prototype", "user research"
+    "scikit-learn", "pandas", "numpy", "data analysis", "data modeling", "statistical analysis",
+    "computer vision", "reinforcement learning", "generative ai", "llms", "prompt engineering",
+    "data visualization", "matplotlib", "seaborn", "plotly", "spark", "hadoop", "etl", "data cleansing",
+
+    # Web Development (Frontend & Backend) Skills
+    "react", "vue", "angular", "javascript", "typescript", "html", "css", "scss", "less",
+    "node", "express", "flask", "django", "spring boot", "c#", ".net", "php", "laravel",
+    "ruby on rails", "go", "gin", "fastapi", "restful apis", "graphql", "microservices",
+    "webpack", "babel", "redux", "next.js", "nuxt.js", "svelte", "bootstrap", "tailwind css",
+    "web components", "responsive design", "server-side rendering",
+
+    # UI/UX/Design Skills
+    "figma", "adobe xd", "sketch", "wireframe", "prototype", "user research", "usability testing",
+    "design systems", "information architecture", "interaction design", "visual design",
+    "user flows", "mockups", "design thinking", "personas", "storyboarding", "user-centered design",
+
+    # General Software Development, DevOps, Cloud & Database Skills
+    "git", "version control", "docker", "kubernetes", "aws", "azure", "gcp", "cloud computing",
+    "ci/cd", "continuous integration", "continuous delivery", "jenkins", "gitlab ci", "github actions",
+    "linux", "shell scripting", "bash", "python scripting", "api design", "system design",
+    "data structures", "algorithms", "problem-solving", "agile methodologies", "scrum", "kanban",
+    "sql", "postgresql", "mysql", "mongodb", "redis", "database design", "database management",
+    "debugging", "troubleshooting", "software architecture", "clean code", "code review"
 ]
 
 def skills_explicitness(text):
@@ -440,9 +529,9 @@ df['final_score'] = df[kpi_columns].mean(axis=1).round(2)
 
 # Assign tiers based on final_score
 def assign_tier(score):
-    if score >= 0.80:
+    if score >= 0.70:
         return "Green"
-    elif score >= 0.60:
+    elif score >= 0.50:
         return "Yellow"
     else:
         return "Red"
@@ -450,7 +539,7 @@ def assign_tier(score):
 df['tier'] = df['final_score'].apply(assign_tier)
 
 # print final results
-print(df[['title', 'final_score', 'tier'] + kpi_columns].head(31))
+print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
 
 # Replace all NaN with None (which becomes null in JSON)
