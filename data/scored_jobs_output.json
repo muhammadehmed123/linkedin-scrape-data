@@ -1178,7 +1178,7 @@
       }
     ],
     "kpi_jd_quality":1.0,
-    "kpi_domain_fit":0.8,
+    "kpi_domain_fit":1.0,
     "kpi_seniority_alignment":0.5,
     "kpi_location_priority":0.6,
     "kpi_company_specialties":0.33,
@@ -1192,7 +1192,7 @@
     "kpi_contact_info":0.0,
     "kpi_skills_explicitness":0.8,
     "kpi_experience_threshold":0.5,
-    "final_score":0.57,
+    "final_score":0.58,
     "tier":"Yellow"
   },
   {
@@ -1236,7 +1236,7 @@
       }
     ],
     "kpi_jd_quality":1.0,
-    "kpi_domain_fit":0.8,
+    "kpi_domain_fit":1.0,
     "kpi_seniority_alignment":1.0,
     "kpi_location_priority":0.6,
     "kpi_company_specialties":0.33,
@@ -1250,7 +1250,7 @@
     "kpi_contact_info":0.0,
     "kpi_skills_explicitness":0.4,
     "kpi_experience_threshold":0.5,
-    "final_score":0.61,
+    "final_score":0.62,
     "tier":"Yellow"
   },
   {
@@ -3763,7 +3763,7 @@
       }
     ],
     "kpi_jd_quality":1.0,
-    "kpi_domain_fit":0.8,
+    "kpi_domain_fit":1.0,
     "kpi_seniority_alignment":0.5,
     "kpi_location_priority":0.6,
     "kpi_company_specialties":0.33,
@@ -3777,7 +3777,7 @@
     "kpi_contact_info":0.0,
     "kpi_skills_explicitness":0.8,
     "kpi_experience_threshold":0.5,
-    "final_score":0.57,
+    "final_score":0.58,
     "tier":"Yellow"
   },
   {

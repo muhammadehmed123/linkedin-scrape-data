@@ -103,6 +103,22 @@ target_domains = {
         "information architecture", "interaction design", "visual design", "responsive design",
         "accessibility", "design thinking", "sketch", "invision", "user flows",
         "mockups", "design principles", "front-end design", "a/b testing", "human-computer interaction"
+    ],
+    "cloud_devops": [
+        "cloud", "aws", "azure", "gcp", "devops", "terraform", "ansible", "docker", "kubernetes",
+        "infrastructure", "cloud engineer", "site reliability", "sre", "ci/cd", "platform engineer"
+    ],
+    "data_engineering": [
+        "data engineer", "etl", "pipeline", "spark", "hadoop", "big data", "airflow",
+        "data warehouse", "databricks", "snowflake", "data lake", "data platform"
+    ],
+    "mobile": [
+        "android", "ios", "mobile developer", "react native", "flutter", "mobile apps",
+        "swift", "kotlin", "mobile engineer"
+    ],
+    "cybersecurity": [
+        "security engineer", "cybersecurity", "infosec", "penetration testing", "ethical hacking",
+        "appsec", "security analyst", "devsecops", "security architect", "risk", "vulnerability"
     ]
 }
 
@@ -510,6 +526,29 @@ def experience_score_from_description(desc):
 
 # Apply the function
 df['kpi_experience_threshold'] = df['descriptionText'].apply(experience_score_from_description)
+
+# --- Predict Domain for Each Job and Append Column ---
+
+# def predict_domain(title, description, keyword_dict):
+#     combined = f"{title} {description}".lower()
+#     domain_scores = {domain: 0 for domain in keyword_dict}
+#     for domain, keywords in keyword_dict.items():
+#         for kw in keywords:
+#             if f"{kw}" in combined:
+#                 domain_scores[domain] += 1
+#     best_domain = max(domain_scores, key=domain_scores.get)
+#     return best_domain if domain_scores[best_domain] > 0 else "other"
+
+# # Apply to DataFrame
+# df['predicted_domain'] = df.apply(
+#     lambda row: predict_domain(
+#         str(row.get('title', '')),
+#         str(row.get('descriptionText', '')),
+#         target_domains
+#     ),
+#     axis=1
+# )
+
 
 # print results
 # print(df[['title', 'descriptionText', 'kpi_experience_threshold']].head(5))
