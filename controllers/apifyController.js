@@ -3,6 +3,7 @@ const fs = require('fs');
 const { fetchJobsFromApify } = require('../config/apifyService');
 const { runAimlProcessing } = require('../services/aimlProcessService');
 const UserJobBatch = require('../models/jobBatchSchema');
+// const JobBatch = require('../models/jobBatchSchema'); // or your actual model
 
 // Fetch jobs from Apify and save as raw JSON
 exports.fetchAndSaveJobs = async (req, res) => {
@@ -68,44 +69,213 @@ exports.scoreJobs = async (req, res) => {
 
 // ... existing code ...
 
-exports.saveJobs = async (req, res) => {
+// exports.saveJobs = async (req, res) => {
+//   try {
+//     const userId = req.user.id; // assuming user is authenticated and userId is available
+
+//     // 1. Read jobs from scored_jobs_output.json
+//     const scoredPath = path.join(__dirname, '../data/scored_jobs_output.json');
+//     if (!fs.existsSync(scoredPath)) {
+//       return res.status(404).json({ error: 'scored_jobs_output.json not found.' });
+//     }
+//     const jobs = JSON.parse(fs.readFileSync(scoredPath, 'utf-8'));
+//     if (!Array.isArray(jobs) || jobs.length === 0) {
+//       return res.status(400).json({ error: 'No jobs data to save.' });
+//     }
+
+//     // 2. Save to MongoDB
+//     const batch = {
+//       timestamp: new Date(),
+//       date: new Date().toISOString().split('T')[0],
+//       jobs: jobs
+//     };
+
+//     let userBatch = await UserJobBatch.findOne({ userId });
+//     if (!userBatch) {
+//       userBatch = new UserJobBatch({ userId, batches: [batch] });
+//     } else {
+//       userBatch.batches.push(batch);
+//     }
+//     await userBatch.save();
+
+//     res.status(200).json({ message: 'Jobs saved to database.' });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+// const UserJobBatch = require('../models/jobBatchSchema');
+
+/**
+ * Save a new batch of jobs for the authenticated user.
+ * If a UserJobBatch exists, append the batch; otherwise, create a new document.
+ */
+// exports.saveJobsBatch = async (req, res) => {
+//   try {
+//     // 1. Get userId from auth middleware
+//     const userId = req.user._id;
+
+//     // 2. Get batch data from request body
+//     // Expecting: { date: 'YYYY-MM-DD', jobs: [ ... ] }
+//     const { date, jobs } = req.body;
+
+//     if (!date || !Array.isArray(jobs)) {
+//       return res.status(400).json({ message: 'Date and jobs array are required.' });
+//     }
+
+//     // 3. Find if a UserJobBatch exists for this user
+//     let userJobBatch = await UserJobBatch.findOne({ userId });
+
+//     const newBatch = {
+//       date,
+//       jobs,
+//       timestamp: new Date()
+//     };
+
+//     if (userJobBatch) {
+//       // 4a. If exists, push new batch
+//       userJobBatch.batches.push(newBatch);
+//       await userJobBatch.save();
+//     } else {
+//       // 4b. If not, create new document
+//       userJobBatch = new UserJobBatch({
+//         userId,
+//         batches: [newBatch]
+//       });
+//       await userJobBatch.save();
+//     }
+
+//     return res.status(201).json({ message: 'Jobs batch saved successfully.' });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error.' });
+//   }
+// };
+
+// const fs = require('fs');
+// const path = require('path');
+// const UserJobBatch = require('../models/jobBatchSchema');
+
+// This endpoint will read scored_jobs_output.json and save it to the DB for the current user
+// const fs = require('fs');
+// const path = require('path');
+// const UserJobBatch = require('../models/jobBatchSchema');
+
+exports.uploadScoredJobsFromFile = async (req, res) => {
   try {
-    const userId = req.user.id; // assuming user is authenticated and userId is available
+    const userId = req.user._id;
+    const filePath = path.join(__dirname, '../data/scored_jobs_output.json');
 
-    // 1. Read jobs from scored_jobs_output.json
-    const scoredPath = path.join(__dirname, '../data/scored_jobs_output.json');
-    if (!fs.existsSync(scoredPath)) {
-      return res.status(404).json({ error: 'scored_jobs_output.json not found.' });
-    }
-    const jobs = JSON.parse(fs.readFileSync(scoredPath, 'utf-8'));
+    // Read and parse the JSON file (which is an array)
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const jobs = JSON.parse(fileContent);
+
     if (!Array.isArray(jobs) || jobs.length === 0) {
-      return res.status(400).json({ error: 'No jobs data to save.' });
+      return res.status(400).json({ message: 'Jobs array is empty or invalid in the file.' });
     }
 
-    // 2. Save to MongoDB
-    const batch = {
-      timestamp: new Date(),
-      date: new Date().toISOString().split('T')[0],
-      jobs: jobs
+    // Use today's date as the batch date
+    const date = new Date().toISOString().split('T')[0];
+
+    // Prepare the new batch
+    const newBatch = {
+      date,
+      jobs,
+      timestamp: new Date()
     };
 
-    let userBatch = await UserJobBatch.findOne({ userId });
-    if (!userBatch) {
-      userBatch = new UserJobBatch({ userId, batches: [batch] });
-    } else {
-      userBatch.batches.push(batch);
-    }
-    await userBatch.save();
+    // Find or create UserJobBatch
+    let userJobBatch = await UserJobBatch.findOne({ userId });
 
-    res.status(200).json({ message: 'Jobs saved to database.' });
+    if (userJobBatch) {
+      userJobBatch.batches.push(newBatch);
+      await userJobBatch.save();
+    } else {
+      userJobBatch = new UserJobBatch({
+        userId,
+        batches: [newBatch]
+      });
+      await userJobBatch.save();
+    }
+
+    return res.status(201).json({ message: 'Jobs batch uploaded from file successfully.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
-
 // ... existing code ...
+// controllers/jobController.js
 
+// exports.getJobsByDate = async (req, res) => {
+//   try {
+//     const userId = req.user._id; // set by authMiddleware
+//     const date = req.query.date || new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
 
+//     // Find the user's job batches
+//     const jobBatch = await UserJobBatch.findOne({ userId });
+
+//     if (!jobBatch) {
+//       return res.status(404).json({ message: 'No job batches found for user.' });
+//     }
+
+//     // Find the batch for the requested date
+//     const batch = jobBatch.batches.find(b => b.date === date);
+
+//     if (!batch) {
+//       return res.status(404).json({ message: 'No jobs found for this date.' });
+//     }
+
+//     return res.json({ date: batch.date, jobs: batch.jobs });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error.' });
+//   }
+// };
+exports.getJobsByDate = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    let { startDate, endDate } = req.query;
+
+    const userJobBatch = await UserJobBatch.findOne({ userId });
+
+    if (!userJobBatch || !userJobBatch.batches.length) {
+      return res.status(404).json({ message: 'No job batches found for user.' });
+    }
+
+    // If no dates provided, fetch the latest batch by date
+    if (!startDate && !endDate) {
+      // Find the batch with the latest date
+      const latestBatch = userJobBatch.batches.reduce((latest, current) =>
+        !latest || current.date > latest.date ? current : latest, null
+      );
+      if (!latestBatch) {
+        return res.status(404).json({ message: 'No jobs found.' });
+      }
+      return res.json({ date: latestBatch.date, jobs: latestBatch.jobs });
+    }
+
+    // If only one date is provided, treat both as the same
+    if (!startDate) startDate = endDate;
+    if (!endDate) endDate = startDate;
+
+    // Get all batches within the date range (inclusive)
+    const batchesInRange = userJobBatch.batches.filter(b =>
+      b.date >= startDate && b.date <= endDate
+    );
+
+    if (!batchesInRange.length) {
+      return res.status(404).json({ message: 'No jobs found for this date range.' });
+    }
+
+    // Merge all jobs from all batches in the range
+    const jobs = batchesInRange.flatMap(b => b.jobs);
+
+    return res.json({ startDate, endDate, jobs });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
 // Utility to safely access nested properties
 function toSafe(obj, path, fallback = null) {
   try {

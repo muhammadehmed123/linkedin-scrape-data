@@ -22,6 +22,10 @@ router.get('/apify/scored', apifyController.getScoredJobs);
 router.get('/apify/filtered', apifyController.getFilteredJobs);
 
 
-router.post('/save-jobs', authMiddleware, apifyController.saveJobs);
+router.post('/save-jobs', authMiddleware, apifyController.uploadScoredJobsFromFile);
+
+router.get('/jobs-by-date', authMiddleware, apifyController.getJobsByDate);
+
+module.exports = router;
 
 module.exports = router;

@@ -24,7 +24,7 @@ app.listen(PORT, () => {
   console.log(`📈 Get Scored Jobs:          GET    /api/apify/scored`);
   console.log(`   (returns scored jobs as JSON)`);
   console.log('-------------------------------------------------');
-  console.log(`📥 Export data to mongodb: POST    api/save-jobs`);
+  console.log(`📥 extract data from mongodb: GET    /api/jobs-by-date-range?startDate=2025-07-09&endDate=2025-07-11s`);
   console.log('-------------------------------------------------');
   console.log(`📁 Raw API data saved at:    /data/apify_jobs_raw.json`);
   console.log(`📁 Scored data saved at:     /data/scored_jobs_output.json`);
