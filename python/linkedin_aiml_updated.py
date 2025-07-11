@@ -44,30 +44,24 @@ print(f" Remote jobs found: {df.shape[0]}")
 def jd_quality_score(text):
     text = str(text)
     score = 0.0
+    lower_text = text.lower()
     length = len(text)
 
-    # Length check
-    if length > 300:
+    if any(kw in lower_text for kw in ['responsibilities', 'requirements', 'qualifications', 'skills']):
         score += 0.4
 
-    # Bullet point or list style formatting
     if '-' in text or '•' in text:
-        score += 0.2
+        score += 0.3
 
-    # Structure keywords
-    if any(kw in text.lower() for kw in ['responsibilities', 'requirements', 'qualifications', 'skills']):
-        score += 0.2
-
-    # Minimal punctuation noise
     symbol_count = sum(1 for char in text if char in string.punctuation)
     symbol_ratio = symbol_count / max(length, 1)
     if symbol_ratio < 0.05:
-        score += 0.2
+        score += 0.3
 
     return round(min(score, 1.0), 2)
 
 df['kpi_jd_quality'] = df['descriptionText'].apply(jd_quality_score)
-# print(df[['title', 'kpi_jd_quality']].head())
+# print(df[['title', 'kpi_jd_quality']].head()
 
 """## KPI 2: Domain Fit KPI (QA, Test Automation, Web Dev, AI, ML, UI/UX)
 
@@ -162,16 +156,26 @@ df['kpi_seniority_alignment'] = df['descriptionText'].apply(seniority_alignment_
 # print(df[['title', 'kpi_seniority_alignment']].head())
 
 """## KPI 4: Location Priority KPI"""
-
-preferred_countries = ['united states', 'usa', 'us', 'uk', 'Canada', 'United Kingdom', 'Germany', 'Netherlands', "Saudia Arab", "UAE"]
+us_canada = {'united states', 'usa', 'canada'}
+europe = {'united kingdom', 'uk', 'germany', 'netherlands', 'france', 'denmark', 'sweden', 'norway', 'finland', 'switzerland'}
+middle_east = {'uae', 'united arab emirates', 'saudi arabia', 'qatar', 'oman', 'kuwait', 'bahrain'}
+discard = {'pakistan', 'india', 'bangladesh', 'nepal', 'sri lanka', 'china', 'indonesia', 'vietnam', 'malaysia', 'thailand', 'israel'}
 
 def location_priority_score(locations):
     if isinstance(locations, list):
         for loc in locations:
-            country = str(loc.get('parsed', {}).get('country', '')).lower()
-            if any(pref in country for pref in preferred_countries):
+            country = str(loc.get('parsed', {}).get('country', '')).strip().lower()
+
+            if country in discard:
+                return 0.0
+            elif country in us_canada:
                 return 1.0
-        return 0.6
+            elif country in europe:
+                return 0.8
+            elif country in middle_east:
+                return 0.6
+            elif country:
+                return 0.5
     return 0.5
 
 df['kpi_location_priority'] = df['company.locations'].apply(location_priority_score)
@@ -386,27 +390,25 @@ df['kpi_job_popularity'] = df['views'].apply(job_popularity_score)
 
 """## KPI 11: Job Freshness KPI"""
 
-from datetime import datetime
-
 def job_freshness_score(posted_date):
     try:
         posted = datetime.fromisoformat(posted_date.replace("Z", ""))
         days_old = (datetime.now(timezone.utc) - posted).days
     except:
-        return 0.5
+        return 0.1
 
-    if days_old <= 1:
+    if days_old <= 0:
         return 1.0
-    elif days_old <= 3:
-        return 0.9
-    elif days_old <= 7:
+    elif days_old <= 2:
         return 0.8
-    elif days_old <= 14:
+    elif days_old <= 6:
         return 0.6
-    elif days_old <= 30:
+    elif days_old <= 14:
         return 0.4
-    else:
+    elif days_old <= 30:
         return 0.2
+    else:
+        return 0.1
 
 df['kpi_job_freshness'] = df['postedDate'].apply(job_freshness_score)
 # print(df[['title', 'postedDate', 'kpi_job_freshness']].head())
@@ -527,7 +529,7 @@ def experience_score_from_description(desc):
 # Apply the function
 df['kpi_experience_threshold'] = df['descriptionText'].apply(experience_score_from_description)
 
-# --- Predict Domain for Each Job and Append Column ---
+# --- Predict Domain for Each Job and Append Column --- 
 
 # def predict_domain(title, description, keyword_dict):
 #     combined = f"{title} {description}".lower()
@@ -580,6 +582,96 @@ df['tier'] = df['final_score'].apply(assign_tier)
 # print final results
 print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
+
+# Domain mappings (more extensive and accurate)
+domain_keywords = {
+    "Recruitment": [
+        "recruitment", "recruiting", "ats", "talent acquisition", "interview", "interviewer", "candidate", "hiring", "job posting", "job board"
+    ],
+    "Learning & Development": [
+        "learning", "elearning", "training", "courses", "career development", "skill building", "education", "instructor", "sessions", "bootcamp", "mentoring"
+    ],
+    "Staff Augmentation": [
+        "freelancer", "freelance", "contract", "contractor", "staff augmentation", "temporary role", "remote resource", "talent pool", "outsourced"
+    ],
+    "QA & Test Automation": [
+        "qa", "quality assurance", "testing", "test automation", "selenium", "cypress", "jmeter", "bug", "test plan", "test case", "regression", "load testing", "manual testing"
+    ],
+    "UI/UX Design": [
+        "ui", "ux", "user interface", "user experience", "figma", "xd", "wireframe", "design system", "prototyping", "mockups", "accessibility", "interaction design"
+    ],
+    "Software Development": [
+        "developer", "development", "frontend", "backend", "fullstack", "web development", "mobile app", "software engineer", "api", "rest", "java", "python", "node", "php", "laravel"
+    ],
+    "DevOps": [
+        "devops", "ci/cd", "infrastructure", "cloud", "kubernetes", "docker", "aws", "gcp", "azure", "ansible", "jenkins", "terraform", "serverless"
+    ],
+    "Cybersecurity": [
+        "cybersecurity", "penetration testing", "vulnerability", "incident response", "security", "firewall", "threat detection", "owasp", "burp suite", "security audit", "zero trust"
+    ],
+    "AI/ML Services": [
+        "ai", "machine learning", "ml", "data science", "deep learning", "neural networks", "llm", "nlp", "pytorch", "tensorflow", "scikit-learn", "prompt engineering", "classification"
+    ]
+}
+
+# Domain to product or service
+domain_to_product = {
+    "Recruitment": "Recruitinn",
+    "Learning & Development": "SkillBuilder",
+    "Staff Augmentation": "Co-Vental"
+}
+
+domain_to_service = {
+    "QA & Test Automation": "QA & Test Automation",
+    "UI/UX Design": "UI/UX Designing",
+    "Software Development": "Software Development",
+    "DevOps": "DevOps",
+    "Cybersecurity": "Cybersecurity",
+    "AI/ML Services": "AI/ML Services"
+}
+
+def detect_domain_v2(title, desc):
+    content = f"{title} {desc}".lower()
+    scores = {}
+
+    for domain, keywords in domain_keywords.items():
+        score = sum(1 for kw in keywords if kw in content)
+        scores[domain] = score / len(keywords)  # normalize
+
+    # Sort by score, descending
+    sorted_domains = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    top_domain, top_score = sorted_domains[0]
+
+    return top_domain if top_score >= 0.1 else None  # only return if meaningful match
+
+def generate_ai_remark(row):
+    score = row.get("final_score", 0)
+    tier = row.get("tier", "Red")
+    title = str(row.get("title", ""))
+    desc = str(row.get("descriptionText", ""))
+
+    matched_domain = detect_domain_v2(title, desc)
+    if not matched_domain:
+        return f"This job has a final score of {score} ({tier} Tier), but doesn’t match any core service. Manual review needed."
+
+    # Choose whether it's mapped to product or service
+    if matched_domain in domain_to_product:
+        label = domain_to_product[matched_domain]
+        kind = "product"
+    elif matched_domain in domain_to_service:
+        label = domain_to_service[matched_domain]
+        kind = "service"
+    else:
+        label = matched_domain
+        kind = "category"
+
+    return (
+        f"This job is potentially useful for our {kind}. Based on the final score of {score} ({tier} Tier), "
+        f"it aligns with **{label}**."
+    )
+
+# Apply to DataFrame
+df['ai_remark'] = df.apply(generate_ai_remark, axis=1)
 
 # Replace all NaN with None (which becomes null in JSON)
 # df = df.where(pd.notnull(df), None)
