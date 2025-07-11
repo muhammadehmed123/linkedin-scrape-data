@@ -8,11 +8,8 @@ const authMiddleware = require('../middleware/authMiddleware');
 // Fetch jobs from Apify and save as raw JSON
 router.get('/apify', apifyController.fetchAndSaveJobs);
 
-// Return processed jobs as JSON
-// router.get('/apify/processed', apifyController.getProcessedJobs);
 
 // Run AIML processing and return result
-// Run scoring (process raw JSON and output scored JSON/CSV)
 router.get('/apify/score', apifyController.scoreJobs);
 
 // Get scored jobs as JSON
@@ -21,11 +18,14 @@ router.get('/apify/scored', apifyController.getScoredJobs);
 // Return filtered jobs with only selected fields
 router.get('/apify/filtered', apifyController.getFilteredJobs);
 
-
+// save jobs to mongodb
 router.post('/save-jobs', authMiddleware, apifyController.uploadScoredJobsFromFile);
 
+//get data from mongodb
 router.get('/jobs-by-date', authMiddleware, apifyController.getJobsByDate);
 
-module.exports = router;
+// Update job status and comments in a user's batch
+router.patch('/jobs/:jobId', authMiddleware, apifyController.updateJobStatusAndComment);
+
 
 module.exports = router;
