@@ -69,52 +69,101 @@ df['kpi_jd_quality'] = df['descriptionText'].apply(jd_quality_score)
 
 target_domains = {
     "qa": [
-        "qa", "quality assurance", "test automation", "testing", "manual testing",
-        "test case", "test plan", "selenium", "cypress", "jmeter", "test rail",
-        "jira", "bug report", "defect tracking", "regression testing", "functional testing",
-        "performance testing", "security testing", "api testing", "ui testing",
-        "user acceptance testing", "uat", "agile testing", "scrum", "ci/cd testing"
+        "qa", "quality assurance", "quality control", "test automation", "manual testing", "testing",
+        "test engineer", "automated testing", "test case", "test plan", "test execution", "bug report",
+        "defect", "regression testing", "functional testing", "performance testing", "load testing",
+        "stress testing", "security testing", "penetration testing", "integration testing", "unit testing",
+        "uat", "user acceptance testing", "test coverage", "cypress", "selenium", "jmeter", "postman",
+        "test rail", "bug tracking", "jira", "smoke testing", "agile testing", "scrum testing",
+        "test script", "ci/cd testing", "exploratory testing", "test data", "test automation framework"
     ],
-    "web": [
-        "frontend", "backend", "web developer", "javascript", "react", "vue",
-        "angular", "html", "css", "node", "python", "django", "flask", "java",
-        "spring boot", "c#", ".net", "php", "laravel", "ruby on rails", "go",
-        "golang", "express.js", "typescript", "rest api", "graphql", "docker",
-        "kubernetes", "aws", "azure", "gcp", "sql", "mongodb", "postgresql",
-        "microservices", "redux", "webpack", "babel", "next.js", "nuxt.js"
+    "development": [
+        "developer", "development", "software engineer", "software developer", "full stack", "fullstack",
+        "backend", "back end", "frontend", "front end", "web developer", "mobile developer",
+        "app developer", "web development", "mobile development", "server-side", "client-side",
+        "build", "implement", "refactor", "codebase", "clean code", "api", "rest api", "graphql",
+        "microservices", "architecture", "mvc", "oop", "design patterns", "tdd", "bdd",
+        "version control", "git", "github", "gitlab", "bitbucket", "pull request", "code review",
+        "dev work", "scrum", "agile", "sprint", "jira", "feature development", "bug fixing",
+        "debugging", "deployment", "release", "unit tests", "code optimization", "ci/cd",
+        "web", "website", "app", "application", "system design", "backend systems", "frontend ui",
+        "tech stack", "technology stack", "api integration", "authentication", "authorization",
+        "websocket", "sdk", "library", "framework", "npm", "yarn", "html", "css", "javascript",
+        "typescript", "react", "vue", "angular", "svelte", "jquery", "bootstrap", "tailwind",
+        "node", "express", "next.js", "nuxt.js", "vite", "php", "laravel", "symfony",
+        "ruby on rails", "java", "spring", "spring boot", "c#", ".net", "asp.net", "flask", "django",
+        "fastapi", "golang", "go", "kotlin", "swift", "objective-c", "android", "ios", "react native",
+        "flutter", "xamarin", "cordova", "electron", "desktop app", "cross-platform", "mongodb",
+        "postgresql", "mysql", "sqlite", "nosql", "redis", "firebase", "supabase", "graphql", "rest"
     ],
     "ai": [
-        "ai", "ml", "machine learning", "deep learning", "data scientist", "pytorch",
-        "tensorflow", "keras", "scikit-learn", "nlp", "natural language processing",
-        "computer vision", "reinforcement learning", "data analysis", "r", "julia",
-        "spark", "hadoop", "neural networks", "predictive modeling", "statistical modeling",
-        "generative ai", "llm", "large language model", "prompt engineering",
-        "data engineering", "mlops", "python ai", "data mining"
+        "ai", "artificial intelligence", "machine learning", "ml", "deep learning", "generative ai",
+        "genai", "large language model", "llm", "foundation model", "chatgpt", "openai",
+        "pytorch", "tensorflow", "keras", "scikit-learn", "huggingface", "vector store",
+        "vector database", "pinecone", "weaviate", "chroma", "langchain", "retrieval-augmented generation",
+        "rag", "prompt engineering", "prompt tuning", "fine-tuning", "inference", "model deployment",
+        "mlops", "ml pipeline", "feature engineering", "model training", "model evaluation",
+        "data science", "data scientist", "statistical modeling", "predictive modeling", "nlp",
+        "natural language processing", "text classification", "entity recognition", "computer vision",
+        "image recognition", "object detection", "cv", "speech recognition", "voice ai", "recommendation system",
+        "data mining", "classification", "regression", "clustering", "unsupervised learning",
+        "reinforcement learning", "transfer learning", "bayesian", "neural network", "transformer",
+        "attention mechanism", "tokenization", "embedding", "zero-shot", "few-shot", "ai agent"
     ],
     "uiux": [
-        "ui", "ux", "user experience", "user interface", "figma", "adobe xd",
-        "wireframe", "design system", "prototype", "usability testing", "user research",
-        "information architecture", "interaction design", "visual design", "responsive design",
-        "accessibility", "design thinking", "sketch", "invision", "user flows",
-        "mockups", "design principles", "front-end design", "a/b testing", "human-computer interaction"
+        "ui", "ux", "ui/ux", "user interface", "user experience", "product designer",
+        "ux designer", "ui designer", "interaction designer", "visual designer",
+        "experience designer", "user researcher", "ux researcher", "usability expert",
+        "ux strategist", "design researcher", "human-centered design", "ux/ui",
+        "figma", "sketch", "adobe xd", "invision", "zeplin", "wireframe", "prototyping",
+        "mockup", "design system", "design tokens", "user journey", "user flow",
+        "persona", "usability", "accessibility", "a/b testing", "interface design",
+        "information architecture", "responsive design", "mobile-first", "adaptive design",
+        "design thinking", "design sprint", "design principles", "hci", "heuristic evaluation",
+        "conversion rate", "ux metrics", "user testing", "qualitative research",
+        "quantitative research", "heatmaps", "surveys", "storyboarding", "lo-fi design",
+        "hi-fi prototype", "experience map", "customer experience", "cx"
     ],
     "cloud_devops": [
-        "cloud", "aws", "azure", "gcp", "devops", "terraform", "ansible", "docker", "kubernetes",
-        "infrastructure", "cloud engineer", "site reliability", "sre", "ci/cd", "platform engineer"
+        "cloud", "aws", "amazon web services", "azure", "gcp", "google cloud", "cloud engineer",
+        "infrastructure", "cloud infrastructure", "infrastructure as code", "serverless",
+        "cloud-native", "platform engineer", "cloud computing", "vpc", "load balancer", "dns",
+        "auto scaling", "cloudformation", "bicep", "lambda", "cloud deployment", "availability zone",
+        "multi-region", "s3", "ec2", "rds", "eks", "aks", "gke", "iam", "identity management"
+    ],
+    "devops": [
+        "devops", "devops engineer", "ci/cd", "jenkins", "circleci", "github actions",
+        "gitlab ci", "pipeline", "build pipeline", "release pipeline", "automation", "build automation",
+        "infrastructure as code", "terraform", "ansible", "puppet", "chef", "helm", "docker",
+        "kubernetes", "container orchestration", "containers", "monitoring", "observability", "alerting",
+        "prometheus", "grafana", "splunk", "datadog", "logz", "logging", "deployment", "release",
+        "scripting", "bash scripting", "shell scripting", "yaml", "configuration management", "rollback",
+        "blue-green deployment", "canary release", "incident management", "runbook", "devops pipeline",
+        "env management", "infrastructure monitoring", "uptime", "downtime", "site reliability",
+        "sre", "platform reliability", "build tools", "artifact", "nexus", "artifactory"
     ],
     "data_engineering": [
-        "data engineer", "etl", "pipeline", "spark", "hadoop", "big data", "airflow",
-        "data warehouse", "databricks", "snowflake", "data lake", "data platform"
-    ],
-    "mobile": [
-        "android", "ios", "mobile developer", "react native", "flutter", "mobile apps",
-        "swift", "kotlin", "mobile engineer"
+        "data engineer", "etl", "data pipeline", "data ingestion", "batch processing",
+        "stream processing", "streaming data", "airflow", "dagster", "luigi", "kafka",
+        "spark", "hadoop", "flink", "big data", "data warehouse", "data lake", "snowflake",
+        "redshift", "databricks", "bigquery", "data modeling", "star schema", "dbt", "sql",
+        "nosql", "mongodb", "postgresql", "mysql", "data platform", "data infrastructure",
+        "data architecture", "schema design", "parquet", "avro", "orjson", "json", "csv",
+        "data transformation", "data validation", "data quality", "data catalog", "metadata",
+        "pipeline orchestration"
     ],
     "cybersecurity": [
-        "security engineer", "cybersecurity", "infosec", "penetration testing", "ethical hacking",
-        "appsec", "security analyst", "devsecops", "security architect", "risk", "vulnerability"
+        "cybersecurity", "security engineer", "security analyst", "security architect",
+        "application security", "network security", "information security", "infosec",
+        "penetration testing", "vulnerability assessment", "ethical hacking", "threat modeling",
+        "risk assessment", "incident response", "security operations", "soc", "red team",
+        "blue team", "devsecops", "zero trust", "iam", "identity and access management",
+        "authentication", "authorization", "sso", "mfa", "owasp", "nmap", "burp suite",
+        "wireshark", "siem", "firewall", "encryption", "ssl", "tls", "certificate management",
+        "compliance", "gdpr", "iso 27001", "hipaa"
     ]
 }
+
 
 # Flatten keyword list for matching
 all_domain_keywords = set(kw.lower() for keywords in target_domains.values() for kw in keywords)
@@ -531,25 +580,37 @@ df['kpi_experience_threshold'] = df['descriptionText'].apply(experience_score_fr
 
 # --- Predict Domain for Each Job and Append Column --- 
 
-# def predict_domain(title, description, keyword_dict):
-#     combined = f"{title} {description}".lower()
-#     domain_scores = {domain: 0 for domain in keyword_dict}
-#     for domain, keywords in keyword_dict.items():
-#         for kw in keywords:
-#             if f"{kw}" in combined:
-#                 domain_scores[domain] += 1
-#     best_domain = max(domain_scores, key=domain_scores.get)
-#     return best_domain if domain_scores[best_domain] > 0 else "other"
+def predict_domain(title, description, keyword_dict):
+    title_lower = title.lower()
+    combined_text = f"{title} {description}".lower()
 
-# # Apply to DataFrame
-# df['predicted_domain'] = df.apply(
-#     lambda row: predict_domain(
-#         str(row.get('title', '')),
-#         str(row.get('descriptionText', '')),
-#         target_domains
-#     ),
-#     axis=1
-# )
+    # Step 1: If any domain keyword appears in title, assign domain immediately
+    for domain, keywords in keyword_dict.items():
+        for kw in keywords:
+            if kw in title_lower:
+                return domain
+
+    # Step 2: Score based on matches in combined text (fallback if title didn't help)
+    domain_scores = {domain: 0 for domain in keyword_dict}
+    for domain, keywords in keyword_dict.items():
+        for kw in keywords:
+            if kw in combined_text:
+                domain_scores[domain] += 1
+
+    best_domain = max(domain_scores, key=domain_scores.get)
+    return best_domain if domain_scores[best_domain] > 0 else "other"
+
+
+# Apply to DataFrame
+df['predicted_domain'] = df.apply(
+    lambda row: predict_domain(
+        str(row.get('title', '')),
+        str(row.get('descriptionText', '')),
+        target_domains
+    ),
+    axis=1
+)
+
 
 
 # print results
