@@ -13,7 +13,7 @@ router.get('/apify', apifyController.fetchAndSaveJobs);
 router.get('/apify/score', apifyController.scoreJobs);
 
 // Get scored jobs as JSON
-router.get('/apify/scored', apifyController.getScoredJobs);
+router.get('/apify/scoredd', apifyController.getScoredJobs);
 
 // Return filtered jobs with only selected fields
 router.get('/apify/filtered', apifyController.getFilteredJobs);
