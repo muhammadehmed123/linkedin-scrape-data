@@ -7,43 +7,36 @@ on:
 
 jobs:
   deploy:
+    name: SSH Deploy to EC2
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-    - name: Setup SSH (with debugging)
-  run: |
-    echo "DEBUGGING SSH SETUP..."
-    echo "HOME = $HOME"
-    echo "${{ secrets.SSH_PRIVATE_KEY }}" | head -n 5
-    mkdir -p $HOME/.ssh
-    echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/deploy_key
-    chmod 600 $HOME/.ssh/deploy_key
-    ssh-keyscan -H ${{ secrets.SSH_HOST }} >> $HOME/.ssh/known_hosts
-
-
-      - name: Deploy backend to EC2
-        env:
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.SSH_HOST }}
-          USER: ${{ secrets.SSH_USER }}
+      - name: Setup SSH
         run: |
-          ssh -i $HOME/.ssh/deploy_key -o StrictHostKeyChecking=no $USER@$HOST << 'EOF'
-            echo "Connected to EC2"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-            cd ~/backend/linkedin-scrape-data
+      - name: Deploy to EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ubuntu/backend  # 🔁 Change this to your actual backend path
 
-            git fetch origin master && git reset --hard origin/master
+            git pull origin master
 
             npm install
 
-            if [ -f requirements.txt ]; then
-              python3 -m pip install -r requirements.txt
-            fi
+            # Optional: If your backend needs a build step
+            npm run build || true
 
-            which pm2 || npm install -g pm2
-            pm2 restart backend || pm2 start server.js --name backend
+            # Restart backend with PM2
+            pm2 delete backend || true
+            pm2 start npm --name backend -- start
+
+            # Save PM2 state
             pm2 save
-          EOF
+EOF
