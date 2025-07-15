@@ -3,7 +3,7 @@ name: Deploy Backend to EC2
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
@@ -25,13 +25,13 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/backend/linkedin-scrape-data
 
-            # Pull latest backend code
-            git fetch origin main && git reset --hard origin/main
+            # Pull latest backend code from master
+            git fetch origin master && git reset --hard origin/master
 
-            # Install Node.js deps
+            # Install Node.js dependencies
             npm install
 
-            # Install Python deps (if needed)
+            # Install Python dependencies if needed
             if [ -f requirements.txt ]; then
               python3 -m pip install -r requirements.txt
             fi
@@ -39,7 +39,7 @@ jobs:
             # Ensure PM2 is installed
             which pm2 || npm install -g pm2
 
-            # Restart backend with PM2
+            # Restart or start backend with PM2
             pm2 restart backend || pm2 start server.js --name backend
 
             # Save PM2 process list
