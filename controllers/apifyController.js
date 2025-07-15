@@ -299,51 +299,6 @@ exports.getFilteredJobs = (req, res) => {
  * PATCH /api/jobs/:jobId
  * Body: { status: "new_status", comment: "Your comment" }
  */
-// exports.updateJobStatusAndComment = async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const { jobId } = req.params;
-//     const { status, comment } = req.body;
-
-//     if (!status && !comment) {
-//       return res.status(400).json({ message: 'At least one of status or comment is required.' });
-//     }
-
-//     // Find the user's job batches
-//     const userJobBatch = await UserJobBatch.findOne({ userId });
-//     if (!userJobBatch) {
-//       return res.status(404).json({ message: 'No job batches found for user.' });
-//     }
-
-//     // Find the job in any batch
-//     let jobFound = false;
-//     for (const batch of userJobBatch.batches) {
-//       const job = batch.jobs.find(j => j.id === jobId);
-//       if (job) {
-//         if (status) job.status = status;
-//         if (comment) {
-//           // If comments is an array, push; if string, convert to array
-//           if (!Array.isArray(job.comments)) job.comments = [];
-//           job.comments.push(comment);
-//         }
-//         jobFound = true;
-//         break;
-//       }
-//     }
-
-//     if (!jobFound) {
-//       return res.status(404).json({ message: 'Job not found for user.' });
-//     }
-
-//     await userJobBatch.save();
-//     return res.json({ message: 'Job updated successfully.' });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error.' });
-//   }
-// };
-// ... existing code ...
-
 
 exports.updateJobStatusAndComment = async (req, res) => {
   try {

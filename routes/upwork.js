@@ -1,12 +1,3 @@
-// const express = require('express');
-// const router = express.Router();
-// const upworkController = require('../controllers/upworkController');
-
-// // GET /api/upwork/fetch
-// router.get('/upwork/fetch', upworkController.fetchAndSaveJobs);
-
-// module.exports = router;
-
 const express = require('express');
 const router = express.Router();
 const upworkController = require('../controllers/upworkController');
