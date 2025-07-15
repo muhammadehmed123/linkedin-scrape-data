@@ -15,8 +15,10 @@ import pandas as pd
 import re
 import string
 from datetime import datetime, timezone
-# from IPython.print import print
+from rag_remark_generator import generate_ai_remark
 
+
+# from IPython.print import print
 file_path = r'C:\Users\Dell\Desktop\linkedin-scrape-data\data\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
 
 #Load JSON data
@@ -643,109 +645,20 @@ df['tier'] = df['final_score'].apply(assign_tier)
 # print final results
 print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
-
-# Domain mappings (more extensive and accurate)
-domain_keywords = {
-    "Recruitment": [
-        "recruitment", "recruiting", "ats", "talent acquisition", "interview", "interviewer", "candidate", "hiring", "job posting", "job board"
-    ],
-    "Learning & Development": [
-        "learning", "elearning", "training", "courses", "career development", "skill building", "education", "instructor", "sessions", "bootcamp", "mentoring"
-    ],
-    "Staff Augmentation": [
-        "freelancer", "freelance", "contract", "contractor", "staff augmentation", "temporary role", "remote resource", "talent pool", "outsourced"
-    ],
-    "QA & Test Automation": [
-        "qa", "quality assurance", "testing", "test automation", "selenium", "cypress", "jmeter", "bug", "test plan", "test case", "regression", "load testing", "manual testing"
-    ],
-    "UI/UX Design": [
-        "ui", "ux", "user interface", "user experience", "figma", "xd", "wireframe", "design system", "prototyping", "mockups", "accessibility", "interaction design"
-    ],
-    "Software Development": [
-        "developer", "development", "frontend", "backend", "fullstack", "web development", "mobile app", "software engineer", "api", "rest", "java", "python", "node", "php", "laravel"
-    ],
-    "DevOps": [
-        "devops", "ci/cd", "infrastructure", "cloud", "kubernetes", "docker", "aws", "gcp", "azure", "ansible", "jenkins", "terraform", "serverless"
-    ],
-    "Cybersecurity": [
-        "cybersecurity", "penetration testing", "vulnerability", "incident response", "security", "firewall", "threat detection", "owasp", "burp suite", "security audit", "zero trust"
-    ],
-    "AI/ML Services": [
-        "ai", "machine learning", "ml", "data science", "deep learning", "neural networks", "llm", "nlp", "pytorch", "tensorflow", "scikit-learn", "prompt engineering", "classification"
-    ]
-}
-
-# Domain to product or service
-domain_to_product = {
-    "Recruitment": "Recruitinn",
-    "Learning & Development": "SkillBuilder",
-    "Staff Augmentation": "Co-Vental"
-}
-
-domain_to_service = {
-    "QA & Test Automation": "QA & Test Automation",
-    "UI/UX Design": "UI/UX Designing",
-    "Software Development": "Software Development",
-    "DevOps": "DevOps",
-    "Cybersecurity": "Cybersecurity",
-    "AI/ML Services": "AI/ML Services"
-}
-
-def detect_domain_v2(title, desc):
-    content = f"{title} {desc}".lower()
-    scores = {}
-
-    for domain, keywords in domain_keywords.items():
-        score = sum(1 for kw in keywords if kw in content)
-        scores[domain] = score / len(keywords)  # normalize
-
-    # Sort by score, descending
-    sorted_domains = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    top_domain, top_score = sorted_domains[0]
-
-    return top_domain if top_score >= 0.1 else None  # only return if meaningful match
-
-def generate_ai_remark(row):
-    score = row.get("final_score", 0)
-    tier = row.get("tier", "Red")
-    title = str(row.get("title", ""))
-    desc = str(row.get("descriptionText", ""))
-
-    matched_domain = detect_domain_v2(title, desc)
-    if not matched_domain:
-        return f"This job has a final score of {score} ({tier} Tier), but doesn’t match any core service. Manual review needed."
-
-    # Choose whether it's mapped to product or service
-    if matched_domain in domain_to_product:
-        label = domain_to_product[matched_domain]
-        kind = "product"
-    elif matched_domain in domain_to_service:
-        label = domain_to_service[matched_domain]
-        kind = "service"
-    else:
-        label = matched_domain
-        kind = "category"
-
-    return (
-        f"This job is potentially useful for our {kind}. Based on the final score of {score} ({tier} Tier), "
-        f"it aligns with **{label}**."
-    )
-
-# Apply to DataFrame
-df['ai_remark'] = df.apply(generate_ai_remark, axis=1)
-
-# Replace all NaN with None (which becomes null in JSON)
-# df = df.where(pd.notnull(df), None)
-
-# # Convert DataFrame to list of dicts
-# output_data = df.to_dict(orient='records')
-
-# # Save to JSON file
-# with open('data/scored_jobs_output.json', 'w', encoding='utf-8') as f:
-#     json.dump(output_data, f, ensure_ascii=False, indent=2)
+# Replace NaN with None (null in JSON)
 df = df.where(pd.notnull(df), None)
-df.to_json('data/scored_jobs_output.json', orient='records', force_ascii=False, indent=2)
 
+# Convert to list of dicts
+job_list = df.to_dict(orient='records')
 
-print("Output saved to 'scored_jobs_output.json'")
+# --- Generate AI Remarks ---
+print(">> Generating AI Remar++++++ks using RAG...")
+updated_jobs = generate_ai_remark(job_list)
+print(">> AI Remarks generation completed.")
+
+# Save final output
+with open("data/scored_jobs_output.json", "w", encoding="utf-8") as f:
+    json.dump(updated_jobs, f, ensure_ascii=False, indent=2)
+
+print("Final output with AI remarks saved to 'scored_jobs_output.json'")
 
