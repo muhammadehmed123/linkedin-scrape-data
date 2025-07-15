@@ -15,33 +15,27 @@ jobs:
 
       - name: Setup SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/deploy_key
+          chmod 600 $HOME/.ssh/deploy_key
+          ssh-keyscan ${{ secrets.SSH_HOST }} >> $HOME/.ssh/known_hosts
 
       - name: Deploy backend to EC2
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -i $HOME/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/backend/linkedin-scrape-data
 
-            # Pull latest backend code from master
             git fetch origin master && git reset --hard origin/master
 
-            # Install Node.js dependencies
             npm install
 
-            # Install Python dependencies if needed
             if [ -f requirements.txt ]; then
               python3 -m pip install -r requirements.txt
             fi
 
-            # Ensure PM2 is installed
             which pm2 || npm install -g pm2
 
-            # Restart or start backend with PM2
             pm2 restart backend || pm2 start server.js --name backend
 
-            # Save PM2 process list
             pm2 save
           EOF
