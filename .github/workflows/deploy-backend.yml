@@ -26,7 +26,6 @@ jobs:
             cd ~/backend/linkedin-scrape-data
 
             git fetch origin master && git reset --hard origin/master
-
             npm install
 
             if [ -f requirements.txt ]; then
@@ -34,8 +33,6 @@ jobs:
             fi
 
             which pm2 || npm install -g pm2
-
             pm2 restart backend || pm2 start server.js --name backend
-
             pm2 save
           EOF
