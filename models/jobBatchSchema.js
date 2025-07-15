@@ -144,6 +144,10 @@ const JobSchema = new mongoose.Schema({
   kpi_contact_info: mongoose.Schema.Types.Mixed,
   kpi_skills_explicitness: mongoose.Schema.Types.Mixed,
   kpi_experience_threshold: mongoose.Schema.Types.Mixed,
+
+  // AI Prediction for domain and remarks by AI
+  predicted_domain: String,
+  ai_remark: String,
   final_score: mongoose.Schema.Types.Mixed,
   tier: String
 }, { _id: false });

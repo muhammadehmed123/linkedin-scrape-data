@@ -49,30 +49,24 @@ print(f" Remote jobs found: {df.shape[0]}")
 def jd_quality_score(text):
     text = str(text)
     score = 0.0
+    lower_text = text.lower()
     length = len(text)
 
-    # Length check
-    if length > 300:
+    if any(kw in lower_text for kw in ['responsibilities', 'requirements', 'qualifications', 'skills']):
         score += 0.4
 
-    # Bullet point or list style formatting
     if '-' in text or '•' in text:
-        score += 0.2
+        score += 0.3
 
-    # Structure keywords
-    if any(kw in text.lower() for kw in ['responsibilities', 'requirements', 'qualifications', 'skills']):
-        score += 0.2
-
-    # Minimal punctuation noise
     symbol_count = sum(1 for char in text if char in string.punctuation)
     symbol_ratio = symbol_count / max(length, 1)
     if symbol_ratio < 0.05:
-        score += 0.2
+        score += 0.3
 
     return round(min(score, 1.0), 2)
 
 df['kpi_jd_quality'] = df['descriptionText'].apply(jd_quality_score)
-# print(df[['title', 'kpi_jd_quality']].head())
+# print(df[['title', 'kpi_jd_quality']].head()
 
 """## KPI 2: Domain Fit KPI (QA, Test Automation, Web Dev, AI, ML, UI/UX)
 
@@ -80,36 +74,101 @@ df['kpi_jd_quality'] = df['descriptionText'].apply(jd_quality_score)
 
 target_domains = {
     "qa": [
-        "qa", "quality assurance", "test automation", "testing", "manual testing",
-        "test case", "test plan", "selenium", "cypress", "jmeter", "test rail",
-        "jira", "bug report", "defect tracking", "regression testing", "functional testing",
-        "performance testing", "security testing", "api testing", "ui testing",
-        "user acceptance testing", "uat", "agile testing", "scrum", "ci/cd testing"
+        "qa", "quality assurance", "quality control", "test automation", "manual testing", "testing",
+        "test engineer", "automated testing", "test case", "test plan", "test execution", "bug report",
+        "defect", "regression testing", "functional testing", "performance testing", "load testing",
+        "stress testing", "security testing", "penetration testing", "integration testing", "unit testing",
+        "uat", "user acceptance testing", "test coverage", "cypress", "selenium", "jmeter", "postman",
+        "test rail", "bug tracking", "jira", "smoke testing", "agile testing", "scrum testing",
+        "test script", "ci/cd testing", "exploratory testing", "test data", "test automation framework"
     ],
-    "web": [
-        "frontend", "backend", "web developer", "javascript", "react", "vue",
-        "angular", "html", "css", "node", "python", "django", "flask", "java",
-        "spring boot", "c#", ".net", "php", "laravel", "ruby on rails", "go",
-        "golang", "express.js", "typescript", "rest api", "graphql", "docker",
-        "kubernetes", "aws", "azure", "gcp", "sql", "mongodb", "postgresql",
-        "microservices", "redux", "webpack", "babel", "next.js", "nuxt.js"
+    "development": [
+        "developer", "development", "software engineer", "software developer", "full stack", "fullstack",
+        "backend", "back end", "frontend", "front end", "web developer", "mobile developer",
+        "app developer", "web development", "mobile development", "server-side", "client-side",
+        "build", "implement", "refactor", "codebase", "clean code", "api", "rest api", "graphql",
+        "microservices", "architecture", "mvc", "oop", "design patterns", "tdd", "bdd",
+        "version control", "git", "github", "gitlab", "bitbucket", "pull request", "code review",
+        "dev work", "scrum", "agile", "sprint", "jira", "feature development", "bug fixing",
+        "debugging", "deployment", "release", "unit tests", "code optimization", "ci/cd",
+        "web", "website", "app", "application", "system design", "backend systems", "frontend ui",
+        "tech stack", "technology stack", "api integration", "authentication", "authorization",
+        "websocket", "sdk", "library", "framework", "npm", "yarn", "html", "css", "javascript",
+        "typescript", "react", "vue", "angular", "svelte", "jquery", "bootstrap", "tailwind",
+        "node", "express", "next.js", "nuxt.js", "vite", "php", "laravel", "symfony",
+        "ruby on rails", "java", "spring", "spring boot", "c#", ".net", "asp.net", "flask", "django",
+        "fastapi", "golang", "go", "kotlin", "swift", "objective-c", "android", "ios", "react native",
+        "flutter", "xamarin", "cordova", "electron", "desktop app", "cross-platform", "mongodb",
+        "postgresql", "mysql", "sqlite", "nosql", "redis", "firebase", "supabase", "graphql", "rest"
     ],
     "ai": [
-        "ai", "ml", "machine learning", "deep learning", "data scientist", "pytorch",
-        "tensorflow", "keras", "scikit-learn", "nlp", "natural language processing",
-        "computer vision", "reinforcement learning", "data analysis", "r", "julia",
-        "spark", "hadoop", "neural networks", "predictive modeling", "statistical modeling",
-        "generative ai", "llm", "large language model", "prompt engineering",
-        "data engineering", "mlops", "python ai", "data mining"
+        "ai", "artificial intelligence", "machine learning", "ml", "deep learning", "generative ai",
+        "genai", "large language model", "llm", "foundation model", "chatgpt", "openai",
+        "pytorch", "tensorflow", "keras", "scikit-learn", "huggingface", "vector store",
+        "vector database", "pinecone", "weaviate", "chroma", "langchain", "retrieval-augmented generation",
+        "rag", "prompt engineering", "prompt tuning", "fine-tuning", "inference", "model deployment",
+        "mlops", "ml pipeline", "feature engineering", "model training", "model evaluation",
+        "data science", "data scientist", "statistical modeling", "predictive modeling", "nlp",
+        "natural language processing", "text classification", "entity recognition", "computer vision",
+        "image recognition", "object detection", "cv", "speech recognition", "voice ai", "recommendation system",
+        "data mining", "classification", "regression", "clustering", "unsupervised learning",
+        "reinforcement learning", "transfer learning", "bayesian", "neural network", "transformer",
+        "attention mechanism", "tokenization", "embedding", "zero-shot", "few-shot", "ai agent"
     ],
     "uiux": [
-        "ui", "ux", "user experience", "user interface", "figma", "adobe xd",
-        "wireframe", "design system", "prototype", "usability testing", "user research",
-        "information architecture", "interaction design", "visual design", "responsive design",
-        "accessibility", "design thinking", "sketch", "invision", "user flows",
-        "mockups", "design principles", "front-end design", "a/b testing", "human-computer interaction"
+        "ui", "ux", "ui/ux", "user interface", "user experience", "product designer",
+        "ux designer", "ui designer", "interaction designer", "visual designer",
+        "experience designer", "user researcher", "ux researcher", "usability expert",
+        "ux strategist", "design researcher", "human-centered design", "ux/ui",
+        "figma", "sketch", "adobe xd", "invision", "zeplin", "wireframe", "prototyping",
+        "mockup", "design system", "design tokens", "user journey", "user flow",
+        "persona", "usability", "accessibility", "a/b testing", "interface design",
+        "information architecture", "responsive design", "mobile-first", "adaptive design",
+        "design thinking", "design sprint", "design principles", "hci", "heuristic evaluation",
+        "conversion rate", "ux metrics", "user testing", "qualitative research",
+        "quantitative research", "heatmaps", "surveys", "storyboarding", "lo-fi design",
+        "hi-fi prototype", "experience map", "customer experience", "cx"
+    ],
+    "cloud_devops": [
+        "cloud", "aws", "amazon web services", "azure", "gcp", "google cloud", "cloud engineer",
+        "infrastructure", "cloud infrastructure", "infrastructure as code", "serverless",
+        "cloud-native", "platform engineer", "cloud computing", "vpc", "load balancer", "dns",
+        "auto scaling", "cloudformation", "bicep", "lambda", "cloud deployment", "availability zone",
+        "multi-region", "s3", "ec2", "rds", "eks", "aks", "gke", "iam", "identity management"
+    ],
+    "devops": [
+        "devops", "devops engineer", "ci/cd", "jenkins", "circleci", "github actions",
+        "gitlab ci", "pipeline", "build pipeline", "release pipeline", "automation", "build automation",
+        "infrastructure as code", "terraform", "ansible", "puppet", "chef", "helm", "docker",
+        "kubernetes", "container orchestration", "containers", "monitoring", "observability", "alerting",
+        "prometheus", "grafana", "splunk", "datadog", "logz", "logging", "deployment", "release",
+        "scripting", "bash scripting", "shell scripting", "yaml", "configuration management", "rollback",
+        "blue-green deployment", "canary release", "incident management", "runbook", "devops pipeline",
+        "env management", "infrastructure monitoring", "uptime", "downtime", "site reliability",
+        "sre", "platform reliability", "build tools", "artifact", "nexus", "artifactory"
+    ],
+    "data_engineering": [
+        "data engineer", "etl", "data pipeline", "data ingestion", "batch processing",
+        "stream processing", "streaming data", "airflow", "dagster", "luigi", "kafka",
+        "spark", "hadoop", "flink", "big data", "data warehouse", "data lake", "snowflake",
+        "redshift", "databricks", "bigquery", "data modeling", "star schema", "dbt", "sql",
+        "nosql", "mongodb", "postgresql", "mysql", "data platform", "data infrastructure",
+        "data architecture", "schema design", "parquet", "avro", "orjson", "json", "csv",
+        "data transformation", "data validation", "data quality", "data catalog", "metadata",
+        "pipeline orchestration"
+    ],
+    "cybersecurity": [
+        "cybersecurity", "security engineer", "security analyst", "security architect",
+        "application security", "network security", "information security", "infosec",
+        "penetration testing", "vulnerability assessment", "ethical hacking", "threat modeling",
+        "risk assessment", "incident response", "security operations", "soc", "red team",
+        "blue team", "devsecops", "zero trust", "iam", "identity and access management",
+        "authentication", "authorization", "sso", "mfa", "owasp", "nmap", "burp suite",
+        "wireshark", "siem", "firewall", "encryption", "ssl", "tls", "certificate management",
+        "compliance", "gdpr", "iso 27001", "hipaa"
     ]
 }
+
 
 # Flatten keyword list for matching
 all_domain_keywords = set(kw.lower() for keywords in target_domains.values() for kw in keywords)
@@ -151,16 +210,26 @@ df['kpi_seniority_alignment'] = df['descriptionText'].apply(seniority_alignment_
 # print(df[['title', 'kpi_seniority_alignment']].head())
 
 """## KPI 4: Location Priority KPI"""
-
-preferred_countries = ['united states', 'usa', 'us', 'uk', 'Canada', 'United Kingdom', 'Germany', 'Netherlands', "Saudia Arab", "UAE"]
+us_canada = {'united states', 'usa', 'canada'}
+europe = {'united kingdom', 'uk', 'germany', 'netherlands', 'france', 'denmark', 'sweden', 'norway', 'finland', 'switzerland'}
+middle_east = {'uae', 'united arab emirates', 'saudi arabia', 'qatar', 'oman', 'kuwait', 'bahrain'}
+discard = {'pakistan', 'india', 'bangladesh', 'nepal', 'sri lanka', 'china', 'indonesia', 'vietnam', 'malaysia', 'thailand', 'israel'}
 
 def location_priority_score(locations):
     if isinstance(locations, list):
         for loc in locations:
-            country = str(loc.get('parsed', {}).get('country', '')).lower()
-            if any(pref in country for pref in preferred_countries):
+            country = str(loc.get('parsed', {}).get('country', '')).strip().lower()
+
+            if country in discard:
+                return 0.0
+            elif country in us_canada:
                 return 1.0
-        return 0.6
+            elif country in europe:
+                return 0.8
+            elif country in middle_east:
+                return 0.6
+            elif country:
+                return 0.5
     return 0.5
 
 df['kpi_location_priority'] = df['company.locations'].apply(location_priority_score)
@@ -375,27 +444,25 @@ df['kpi_job_popularity'] = df['views'].apply(job_popularity_score)
 
 """## KPI 11: Job Freshness KPI"""
 
-from datetime import datetime
-
 def job_freshness_score(posted_date):
     try:
         posted = datetime.fromisoformat(posted_date.replace("Z", ""))
         days_old = (datetime.now(timezone.utc) - posted).days
     except:
-        return 0.5
+        return 0.1
 
-    if days_old <= 1:
+    if days_old <= 0:
         return 1.0
-    elif days_old <= 3:
-        return 0.9
-    elif days_old <= 7:
+    elif days_old <= 2:
         return 0.8
-    elif days_old <= 14:
+    elif days_old <= 6:
         return 0.6
-    elif days_old <= 30:
+    elif days_old <= 14:
         return 0.4
-    else:
+    elif days_old <= 30:
         return 0.2
+    else:
+        return 0.1
 
 df['kpi_job_freshness'] = df['postedDate'].apply(job_freshness_score)
 # print(df[['title', 'postedDate', 'kpi_job_freshness']].head())
@@ -516,6 +583,41 @@ def experience_score_from_description(desc):
 # Apply the function
 df['kpi_experience_threshold'] = df['descriptionText'].apply(experience_score_from_description)
 
+# --- Predict Domain for Each Job and Append Column --- 
+
+def predict_domain(title, description, keyword_dict):
+    title_lower = title.lower()
+    combined_text = f"{title} {description}".lower()
+
+    # Step 1: If any domain keyword appears in title, assign domain immediately
+    for domain, keywords in keyword_dict.items():
+        for kw in keywords:
+            if kw in title_lower:
+                return domain
+
+    # Step 2: Score based on matches in combined text (fallback if title didn't help)
+    domain_scores = {domain: 0 for domain in keyword_dict}
+    for domain, keywords in keyword_dict.items():
+        for kw in keywords:
+            if kw in combined_text:
+                domain_scores[domain] += 1
+
+    best_domain = max(domain_scores, key=domain_scores.get)
+    return best_domain if domain_scores[best_domain] > 0 else "other"
+
+
+# Apply to DataFrame
+df['predicted_domain'] = df.apply(
+    lambda row: predict_domain(
+        str(row.get('title', '')),
+        str(row.get('descriptionText', '')),
+        target_domains
+    ),
+    axis=1
+)
+
+
+
 # print results
 # print(df[['title', 'descriptionText', 'kpi_experience_threshold']].head(5))
 
@@ -546,6 +648,96 @@ df['tier'] = df['final_score'].apply(assign_tier)
 # print final results
 # print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
+
+# Domain mappings (more extensive and accurate)
+domain_keywords = {
+    "Recruitment": [
+        "recruitment", "recruiting", "ats", "talent acquisition", "interview", "interviewer", "candidate", "hiring", "job posting", "job board"
+    ],
+    "Learning & Development": [
+        "learning", "elearning", "training", "courses", "career development", "skill building", "education", "instructor", "sessions", "bootcamp", "mentoring"
+    ],
+    "Staff Augmentation": [
+        "freelancer", "freelance", "contract", "contractor", "staff augmentation", "temporary role", "remote resource", "talent pool", "outsourced"
+    ],
+    "QA & Test Automation": [
+        "qa", "quality assurance", "testing", "test automation", "selenium", "cypress", "jmeter", "bug", "test plan", "test case", "regression", "load testing", "manual testing"
+    ],
+    "UI/UX Design": [
+        "ui", "ux", "user interface", "user experience", "figma", "xd", "wireframe", "design system", "prototyping", "mockups", "accessibility", "interaction design"
+    ],
+    "Software Development": [
+        "developer", "development", "frontend", "backend", "fullstack", "web development", "mobile app", "software engineer", "api", "rest", "java", "python", "node", "php", "laravel"
+    ],
+    "DevOps": [
+        "devops", "ci/cd", "infrastructure", "cloud", "kubernetes", "docker", "aws", "gcp", "azure", "ansible", "jenkins", "terraform", "serverless"
+    ],
+    "Cybersecurity": [
+        "cybersecurity", "penetration testing", "vulnerability", "incident response", "security", "firewall", "threat detection", "owasp", "burp suite", "security audit", "zero trust"
+    ],
+    "AI/ML Services": [
+        "ai", "machine learning", "ml", "data science", "deep learning", "neural networks", "llm", "nlp", "pytorch", "tensorflow", "scikit-learn", "prompt engineering", "classification"
+    ]
+}
+
+# Domain to product or service
+domain_to_product = {
+    "Recruitment": "Recruitinn",
+    "Learning & Development": "SkillBuilder",
+    "Staff Augmentation": "Co-Vental"
+}
+
+domain_to_service = {
+    "QA & Test Automation": "QA & Test Automation",
+    "UI/UX Design": "UI/UX Designing",
+    "Software Development": "Software Development",
+    "DevOps": "DevOps",
+    "Cybersecurity": "Cybersecurity",
+    "AI/ML Services": "AI/ML Services"
+}
+
+def detect_domain_v2(title, desc):
+    content = f"{title} {desc}".lower()
+    scores = {}
+
+    for domain, keywords in domain_keywords.items():
+        score = sum(1 for kw in keywords if kw in content)
+        scores[domain] = score / len(keywords)  # normalize
+
+    # Sort by score, descending
+    sorted_domains = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    top_domain, top_score = sorted_domains[0]
+
+    return top_domain if top_score >= 0.1 else None  # only return if meaningful match
+
+def generate_ai_remark(row):
+    score = row.get("final_score", 0)
+    tier = row.get("tier", "Red")
+    title = str(row.get("title", ""))
+    desc = str(row.get("descriptionText", ""))
+
+    matched_domain = detect_domain_v2(title, desc)
+    if not matched_domain:
+        return f"This job has a final score of {score} ({tier} Tier), but doesn’t match any core service. Manual review needed."
+
+    # Choose whether it's mapped to product or service
+    if matched_domain in domain_to_product:
+        label = domain_to_product[matched_domain]
+        kind = "product"
+    elif matched_domain in domain_to_service:
+        label = domain_to_service[matched_domain]
+        kind = "service"
+    else:
+        label = matched_domain
+        kind = "category"
+
+    return (
+        f"This job is potentially useful for our {kind}. Based on the final score of {score} ({tier} Tier), "
+        f"it aligns with **{label}**."
+    )
+
+# Apply to DataFrame
+df['ai_remark'] = df.apply(generate_ai_remark, axis=1)
 
 # Replace all NaN with None (which becomes null in JSON)
 # df = df.where(pd.notnull(df), None)
