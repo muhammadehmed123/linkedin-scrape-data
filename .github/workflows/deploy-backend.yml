@@ -26,15 +26,18 @@ jobs:
             cd ~/backend/linkedin-scrape-data
 
             # Pull latest backend code
-            git pull origin main
+            git fetch origin main && git reset --hard origin/main
 
             # Install Node.js deps
             npm install
 
             # Install Python deps (if needed)
             if [ -f requirements.txt ]; then
-              pip install -r requirements.txt
+              python3 -m pip install -r requirements.txt
             fi
+
+            # Ensure PM2 is installed
+            which pm2 || npm install -g pm2
 
             # Restart backend with PM2
             pm2 restart backend || pm2 start server.js --name backend
