@@ -13,13 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH
-        run: |
-          echo "Setting up SSH"
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/deploy_key
-          chmod 600 $HOME/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> $HOME/.ssh/known_hosts
+    - name: Setup SSH (with debugging)
+  run: |
+    echo "DEBUGGING SSH SETUP..."
+    echo "HOME = $HOME"
+    echo "${{ secrets.SSH_PRIVATE_KEY }}" | head -n 5
+    mkdir -p $HOME/.ssh
+    echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/deploy_key
+    chmod 600 $HOME/.ssh/deploy_key
+    ssh-keyscan -H ${{ secrets.SSH_HOST }} >> $HOME/.ssh/known_hosts
+
 
       - name: Deploy backend to EC2
         env:
