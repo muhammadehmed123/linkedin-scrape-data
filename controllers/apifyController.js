@@ -23,6 +23,8 @@ exports.fetchAndSaveJobs = async (req, res) => {
     const jobs = await fetchJobsFromApify(input);
     const filePath = path.join(__dirname, '../data/apify_jobs_raw.json');
     fs.writeFileSync(filePath, JSON.stringify(jobs, null, 2), 'utf-8');
+    console.log('Writing to:', filePath);
+    console.log('File written!');
     res.json({ message: 'Jobs fetched and saved to JSON file', count: jobs.length });
   } catch (error) {
     console.error('Error fetching or saving jobs:', error);

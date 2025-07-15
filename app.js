@@ -5,8 +5,8 @@ const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const apify = require('./routes/apify');
-const { startApifyScheduler } = require('./services/apifySchedulerService');
-const apifySchedulerRoutes = require('./routes/apifyScheduler');
+// const { startApifyScheduler } = require('./services/apifySchedulerService');
+// const apifySchedulerRoutes = require('./routes/apifyScheduler');
 const upworkRoutes = require('./routes/upwork');
 
 
@@ -20,10 +20,10 @@ app.use(express.json());
 
 
 // Start the Apify scheduler
-startApifyScheduler();
+// startApifyScheduler();
 
 // Use the scheduler route
-app.use('/api', apifySchedulerRoutes);
+// app.use('/api', apifySchedulerRoutes);
 
 // ... rest of your app.js code (other routes, server listen, etc.) ...
 
@@ -34,7 +34,6 @@ app.use('/api', upworkRoutes);
 
 app.use('/api', apify);
 
-// app.use('/api', pipeline);
 
 
 // Error handling
