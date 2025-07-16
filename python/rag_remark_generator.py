@@ -1,5 +1,3 @@
-# python/rag_remark_generator.py
-
 import json
 from tqdm import tqdm
 from config import pinecone_client, openai_client
@@ -35,15 +33,18 @@ def retrieve_best_match(query: str):
 # AI remark generation
 def generate_remark(job, match_name, match_type):
     title = job.get("title", "")
-    desc = job.get("descriptionText", "")
+    
+    # Support both LinkedIn (`descriptionText`) and Upwork (`description`)
+    desc = job.get("descriptionText") or job.get("description") or ""
+    
     score = job.get("final_score", 0)
     tier = job.get("tier", "Red")
-
+    
     if not match_name:
         return f"This job has a final score of {score} ({tier} Tier), but it doesn't clearly align with our services or products."
 
     prompt = (
-        f"You are an expert job analyst AI assistant working for a software consultancy (Co-Ventech) that offers services like QA Automation, DevOps, Cybersecurity, UI/UX, and products like Recruitinn (Recruitment AI), SkillBuilder (LMS), and Co-Vental (Staff Augmentation).\nYour task is to assess whether a given job is a good fit for outreach or not, and recommend a remark. Use the job's score and tier, and compare with other similar job titles..\n"
+        f"You are an expert job analyst AI assistant working for a software consultancy (Co-Ventech) that offers services like QA Automation, DevOps, Cybersecurity, UI/UX, and products like Recruitinn (Recruitment AI), SkillBuilder (LMS), and Co-Vental (Staff Augmentation).\nYour task is to assess whether a given job is a good fit for outreach or not, and recommend a remark. Use the job's score and tier, and compare with other similar job titles.\n"
         f"Job Title: {title}\n"
         f"Description: {desc[:1000]}\n"
         f"Score: {score}, Tier: {tier}\n"

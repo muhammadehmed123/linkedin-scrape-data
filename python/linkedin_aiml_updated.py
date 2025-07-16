@@ -14,12 +14,16 @@ import json
 import pandas as pd
 import re
 import string
+import os
 from datetime import datetime, timezone
 from rag_remark_generator import generate_ai_remark
 
 
 # from IPython.print import print
-file_path = r'C:\Users\Dell\Desktop\linkedin-scrape-data\data\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
+# file_path = r'C:\Users\Dell\Desktop\linkedin-scrape-data\data\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
+
+base_dir = os.path.dirname(__file__)
+file_path = os.path.join(base_dir, '..', 'data', 'apify_jobs_raw.json')
 
 #Load JSON data
 with open(file_path, 'r', encoding='utf-8') as f:
@@ -352,23 +356,23 @@ def company_size_score(emp_count):
         return 0.4  # default score if invalid or missing
 
     if count == 1:
-        return 0.1
+        return 1.0
     elif 2 <= count <= 10:
-        return 0.2
+        return 0.9
     elif 11 <= count <= 50:
-        return 0.3
+        return 0.8
     elif 51 <= count <= 200:
-        return 0.5
+        return 0.7
     elif 201 <= count <= 500:
         return 0.6
     elif 501 <= count <= 1000:
-        return 0.7
+        return 0.5
     elif 1001 <= count <= 5000:
-        return 0.8
+        return 0.4
     elif 5001 <= count <= 10000:
-        return 0.9
+        return 0.3
     else:
-        return 1.0
+        return 0.2
 
 df['kpi_company_size'] = df['company.employeeCount'].apply(company_size_score)
 # print(df[['title', 'company.employeeCount', 'kpi_company_size']].head())
@@ -386,9 +390,9 @@ def company_popularity_score(followers):
     elif followers > 100000:
         return 0.9
     elif followers > 50000:
-        return 0.75
+        return 0.8
     elif followers > 10000:
-        return 0.6
+        return 0.7
     elif followers > 1000:
         return 0.5
     else:
@@ -426,15 +430,19 @@ def job_popularity_score(views):
         return 0.4
 
     if views >= 10000:
-        return 1.0
+        return 0.1
     elif views >= 5000:
-        return 0.8
-    elif views >= 1000:
-        return 0.6
-    elif views >= 300:
-        return 0.4
-    else:
         return 0.2
+    elif views >= 1000:
+        return 0.4
+    elif views >= 300:
+        return 0.6
+    elif views >= 100:
+        return 0.8
+    elif views >= 50:
+        return 1.0
+    else:
+        return 0.5
 
 df['kpi_job_popularity'] = df['views'].apply(job_popularity_score)
 # print(df[['title', 'views', 'kpi_job_popularity']].head())
@@ -652,7 +660,7 @@ df = df.where(pd.notnull(df), None)
 job_list = df.to_dict(orient='records')
 
 # --- Generate AI Remarks ---
-print(">> Generating AI Remar++++++ks using RAG...")
+print(">> Generating AI Remarks using RAG...")
 updated_jobs = generate_ai_remark(job_list)
 print(">> AI Remarks generation completed.")
 
