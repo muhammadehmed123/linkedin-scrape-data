@@ -2,9 +2,9 @@ name: Deploy Backend to EC2
 
 on:
   push:
-    branches: [master]  # Changed from 'main' to 'master'
-    paths:
-      - 'backend/**'
+    branches: [main]  # Changed from 'master' to 'main'
+    # paths:           # Optional: Uncomment if you want path filtering
+    #   - 'backend/**'
 
 jobs:
   deploy-backend:
