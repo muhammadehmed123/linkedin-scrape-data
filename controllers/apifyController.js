@@ -14,7 +14,7 @@ exports.fetchAndSaveJobs = async (req, res) => {
       experienceLevel: ["executive", "director", "mid-senior", "associate"],
       jobTitles: ["Test Automation", "QA" , "SQA","Web Development", "AI/ML", "UI/UX"],
       locations: ["Saudi Arabia", "United Arab Emirates","United States","United Kingdom"],
-      maxItems: 5,
+      maxItems: 25,
       postedLimit: "24h",
       sortBy: "date",
       under10Applicants: false,

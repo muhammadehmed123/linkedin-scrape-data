@@ -95,42 +95,42 @@ exports.fetchAndSaveJobs = async (req, res) => {
 // fs.writeFileSync(outputPath, JSON.stringify(filtered, null, 2), 'utf-8');
 // console.log('Filtered Upwork jobs saved to', outputPath);
 
-const fs = require('fs');
-const path = require('path');
+// const fs = require('fs');
+// const path = require('path');
 
-const inputPath = path.join(__dirname, '..', 'data', 'upwork_jobs_raw.json');
-const outputPath = path.join(__dirname, '..', 'data', 'filtered_upwork.json');
+// const inputPath = path.join(__dirname, '..', 'data', 'upwork_jobs_raw.json');
+// const outputPath = path.join(__dirname, '..', 'data', 'filtered_upwork.json');
 
-const jobs = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
+// const jobs = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
 
-const normalized = jobs.map(job => ({
-  jobId: job.id,
-  title: job.title,
-  description: job.description,
-  isContractToHire: job.isContractToHire,
-  isPaymentMethodVerified: job.isPaymentMethodVerified,
-  level: job.level,
-  contractorTier: job.contractorTier,
-  companyId: job.buyer?.company?.companyId || null,
-  companyIndustry: job.buyer?.company?.profile?.industry || null,
-  companyContractDate: job.buyer?.company?.contractDate || null,
-  buyerScore: job.buyer?.stats?.score ?? null,
-  buyerTotalAssignments: job.buyer?.stats?.totalAssignments ?? null,
-  buyerTotalJobsWithHires: job.buyer?.stats?.totalJobsWithHires ?? null,
-  buyerActiveAssignmentsCount: job.buyer?.stats?.activeAssignmentsCount ?? null,
-  buyerFeedbackCount: job.buyer?.stats?.feedbackCount ?? null,
-  buyerOpenJobsCount: job.buyer?.jobs?.openCount ?? null,
-  buyerPostedJobsCount: job.buyer?.jobs?.postedCount ?? null,
-  buyerAvgHourlyRate: job.buyer?.avgHourlyJobsRate?.amount ?? null,
-  minHourlyRate: job.hourly?.min ?? null,
-  maxHourlyRate: job.hourly?.max ?? null,
-  hourlyType: job.hourly?.type ?? null,
-  hourlyWeeks: job.hourly?.duration?.weeks ?? null,
-  tags: Array.isArray(job.tags) ? job.tags : [],
-  skills: Array.isArray(job.skills) ? job.skills.map(s => s.name) : [],
-  minHoursWeek: job.qualifications?.minHoursWeek ?? null,
-  lastBuyerActivity: job.clientActivity?.lastBuyerActivity ?? null
-}));
+// const normalized = jobs.map(job => ({
+//   jobId: job.id,
+//   title: job.title,
+//   description: job.description,
+//   isContractToHire: job.isContractToHire,
+//   isPaymentMethodVerified: job.isPaymentMethodVerified,
+//   level: job.level,
+//   contractorTier: job.contractorTier,
+//   companyId: job.buyer?.company?.companyId || null,
+//   companyIndustry: job.buyer?.company?.profile?.industry || null,
+//   companyContractDate: job.buyer?.company?.contractDate || null,
+//   buyerScore: job.buyer?.stats?.score ?? null,
+//   buyerTotalAssignments: job.buyer?.stats?.totalAssignments ?? null,
+//   buyerTotalJobsWithHires: job.buyer?.stats?.totalJobsWithHires ?? null,
+//   buyerActiveAssignmentsCount: job.buyer?.stats?.activeAssignmentsCount ?? null,
+//   buyerFeedbackCount: job.buyer?.stats?.feedbackCount ?? null,
+//   buyerOpenJobsCount: job.buyer?.jobs?.openCount ?? null,
+//   buyerPostedJobsCount: job.buyer?.jobs?.postedCount ?? null,
+//   buyerAvgHourlyRate: job.buyer?.avgHourlyJobsRate?.amount ?? null,
+//   minHourlyRate: job.hourly?.min ?? null,
+//   maxHourlyRate: job.hourly?.max ?? null,
+//   hourlyType: job.hourly?.type ?? null,
+//   hourlyWeeks: job.hourly?.duration?.weeks ?? null,
+//   tags: Array.isArray(job.tags) ? job.tags : [],
+//   skills: Array.isArray(job.skills) ? job.skills.map(s => s.name) : [],
+//   minHoursWeek: job.qualifications?.minHoursWeek ?? null,
+//   lastBuyerActivity: job.clientActivity?.lastBuyerActivity ?? null
+// }));
 
-fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf-8');
-console.log('Filtered and normalized Upwork jobs saved to', outputPath);
+// fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf-8');
+// console.log('Filtered and normalized Upwork jobs saved to', outputPath);
