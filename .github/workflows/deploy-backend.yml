@@ -2,7 +2,7 @@ name: Deploy Backend to EC2
 
 on:
   push:
-    branches: main
+    branches: [main]
 
 jobs:
   deploy-backend:
@@ -11,60 +11,72 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Key change: Matches frontend's SSH setup exactly
+      # Verify secrets exist before using them
+      - name: Validate Secrets
+        run: |
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "::error::SSH_PRIVATE_KEY secret is missing or empty"
+            exit 1
+          fi
+          echo "Secrets validation passed"
+
+      # Key fix: Using correct secret names (SSH_PRIVATE_KEY instead of EC2_SSH_KEY)
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.EC2_SSH_KEY }}
-          known_hosts: ${{ secrets.EC2_HOST }}  # Changed from placeholder
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.SSH_HOST }}
           config: |
-            Host ${{ secrets.EC2_HOST }}
+            Host ${{ secrets.SSH_HOST }}
               StrictHostKeyChecking no
               UserKnownHostsFile=/dev/null
 
-      - name: Validate Key
+      # Debugging step to verify key
+      - name: Verify SSH Connection
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
           chmod 400 key.pem
-          ssh-keygen -lf key.pem  # Verify fingerprint matches frontend
+          echo "Testing connection to: ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful!'"
 
-      - name: Deploy & Restart Backend
+      - name: Deploy & Monitor Backend
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            set -e
-            
-            # Debug: Show current user and permissions
-            echo "ℹ️ Current user: $(whoami)"
-            echo "ℹ️ Home directory contents:"
-            ls -la ~/
+          ssh -i key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -euo pipefail
 
-            echo "➡️  Navigating to backend directory..."
-            cd ~/backend/linkedin-scrape-data || {
-              echo "❌ Error: Backend directory not found!";
-              ls -la ~/backend;
-              exit 1;
-            }
+            # System info
+            echo "=== ENVIRONMENT ==="
+            echo "User: $(whoami)"
+            echo "Node: $(node --version)"
+            echo "NPM: $(npm --version)"
+            echo "PM2: $(pm2 --version || echo 'Not installed')"
 
-            # Debug: Show git status before pull
-            echo "ℹ️ Git status before pull:"
-            git status
+            # Directory validation
+            echo "=== VALIDATING PATHS ==="
+            BACKEND_DIR="$HOME/backend/linkedin-scrape-data"
+            [ ! -d "$BACKEND_DIR" ] && { echo "::error::Backend directory missing"; ls -la ~/backend; exit 1; }
 
-            echo "🔄 Pulling latest code..."
-            git pull origin main
+            # Deployment
+            cd "$BACKEND_DIR"
+            echo "=== UPDATING CODE ==="
+            git fetch origin
+            git reset --hard origin/main
 
-            echo "📦 Installing dependencies..."
-            npm install
-
+            echo "=== INSTALLING DEPENDENCIES ==="
+            npm ci --omit=dev
             [ -f requirements.txt ] && pip install -r requirements.txt
 
-            echo "🚀 PM2 Management..."
-            if pm2 list | grep -q backend; then
-              pm2 restart backend
-            else
-              pm2 start server.js --name backend
+            echo "=== PROCESS MANAGEMENT ==="
+            if ! command -v pm2 >/dev/null; then
+              npm install -g pm2
+              pm2 startup
             fi
-            pm2 save
-            pm2 logs backend --lines 5 --nostream
 
-            echo "✅ Backend deployment complete!"
+            pm2 restart backend || pm2 start server.js --name backend
+            pm2 save
+
+            echo "=== FINAL STATUS ==="
+            pm2 list
+            echo "Last logs:"
+            pm2 logs backend --lines 20 --nostream
           EOF
