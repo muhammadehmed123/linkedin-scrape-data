@@ -2,9 +2,7 @@ name: Deploy Backend to EC2
 
 on:
   push:
-    branches: [main]  # Changed from 'master' to 'main'
-    # paths:           # Optional: Uncomment if you want path filtering
-    #   - 'backend/**'
+    branches: [main]
 
 jobs:
   deploy-backend:
@@ -13,16 +11,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Key change: Matches frontend's SSH setup exactly
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.EC2_SSH_KEY }}  # Reuse existing key
-          known_hosts: "just-a-placeholder"
+          key: ${{ secrets.EC2_SSH_KEY }}
+          known_hosts: ${{ secrets.EC2_HOST }}  # Changed from placeholder
+          config: |
+            Host ${{ secrets.EC2_HOST }}
+              StrictHostKeyChecking no
+              UserKnownHostsFile=/dev/null
+
+      - name: Validate Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 400 key.pem
+          ssh-keygen -lf key.pem  # Verify fingerprint matches frontend
 
       - name: Deploy & Restart Backend
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
+            
+            # Debug: Show current user and permissions
+            echo "ℹ️ Current user: $(whoami)"
+            echo "ℹ️ Home directory contents:"
+            ls -la ~/
+
             echo "➡️  Navigating to backend directory..."
             cd ~/backend/linkedin-scrape-data || {
               echo "❌ Error: Backend directory not found!";
@@ -30,23 +45,26 @@ jobs:
               exit 1;
             }
 
+            # Debug: Show git status before pull
+            echo "ℹ️ Git status before pull:"
+            git status
+
             echo "🔄 Pulling latest code..."
             git pull origin main
 
-            echo "📦 Installing Node.js dependencies..."
+            echo "📦 Installing dependencies..."
             npm install
 
-            echo "🐍 Installing Python dependencies (if any)..."
-            if [ -f requirements.txt ]; then
-              pip install -r requirements.txt
+            [ -f requirements.txt ] && pip install -r requirements.txt
+
+            echo "🚀 PM2 Management..."
+            if pm2 list | grep -q backend; then
+              pm2 restart backend
+            else
+              pm2 start server.js --name backend
             fi
-
-            echo "🚀 Restarting PM2 process..."
-            pm2 restart backend || pm2 start server.js --name backend
             pm2 save
+            pm2 logs backend --lines 5 --nostream
 
-            echo "📜 Latest PM2 logs:"
-            pm2 logs backend --lines 20 --nostream
-
-            echo "✅ Backend deployed successfully!"
+            echo "✅ Backend deployment complete!"
           EOF
