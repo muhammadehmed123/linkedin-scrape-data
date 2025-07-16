@@ -1,5 +1,62 @@
 
-const { fetchUpworkJobs } = require('../services/upworkService');
+// const { fetchUpworkJobs } = require('../services/upworkService');
+const { fetchUpworkJobs, filterAndDeduplicateUpworkJobs } = require('../services/upworkService');
+
+const UpworkJob = require('../models/upworkJobSchema');
+
+// Save jobs (bulk insert or upsert)
+exports.saveUpworkJobs = async (req, res) => {
+  try {
+    const jobs = req.body;
+    if (!Array.isArray(jobs)) {
+      return res.status(400).json({ message: 'Input should be an array of jobs' });
+    }
+    // Upsert each job by jobId
+    const bulkOps = jobs.map(job => ({
+      updateOne: {
+        filter: { jobId: job.jobId },
+        update: { $set: job },
+        upsert: true
+      }
+    }));
+    await UpworkJob.bulkWrite(bulkOps);
+    res.json({ message: 'Jobs saved/updated successfully', count: jobs.length });
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving jobs', error: error.message });
+  }
+};
+
+// Get jobs by date (ts_create)
+exports.getJobsByDate = async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ message: 'Date query param required (YYYY-MM-DD)' });
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setDate(end.getDate() + 1);
+
+    const jobs = await UpworkJob.find({
+      ts_create: { $gte: start, $lt: end }
+    });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching jobs by date', error: error.message });
+  }
+};
+
+// Edit job by jobId
+exports.editJobByJobId = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const update = req.body;
+    const job = await UpworkJob.findOneAndUpdate({ jobId }, update, { new: true });
+    if (!job) return res.status(404).json({ message: 'Job not found' });
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ message: 'Error editing job', error: error.message });
+  }
+};
+
 
 exports.fetchAndSaveJobs = async (req, res) => {
     try {
@@ -14,107 +71,53 @@ exports.fetchAndSaveJobs = async (req, res) => {
     }
 };
 
-// const fs = require('fs');
-// const path = require('path');
 
-// // Path to input and output files
-// const inputPath = path.join(__dirname, '..', 'data', 'upwork_jobs_raw.json');
-// const outputPath = path.join(__dirname, '..', 'data', 'filtered_upwork.json');
-// // Helper to safely get nested values
-// function get(obj, path, fallback = null) {
-//   return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : fallback), obj);
-// }
 
-// // Fields to extract (dot notation)
-// const fields = [
-//   'buyer.stats.totalCharges.amount',
-//   'buyer.stats.score',
-//   'isPaymentMethodVerified',
-//   'buyer.company.contractDate',
-//   'buyer.stats.totalAssignments',
-//   'buyer.stats.totalJobsWithHires',
-//   'buyer.stats.activeAssignmentsCount',
-//   'buyer.stats.feedbackCount',
-//   'buyer.jobs.openCount',
-//   'hourly.min',
-//   'hourly.max',
-//   'buyer.avgHourlyJobsRate.amount',
-//   'hourly.duration.weeks',
-//   'isContractToHire',
-//   'tags',
-//   'buyer.stats.totalJobsWithHires',
-//   'buyer.jobs.postedCount',
-//   'level',
-//   'contractorTier',
-//   'skills',
-//   'qualifications.minHoursWeek',
-//   'clientActivity.lastBuyerActivity',
-//   'description',
-//   'title',
-//   'hourly.type',
-//   'buyer.company.profile.industry'
-// ];
+// ... existing exports ...
 
-// // Read input data
-// const jobs = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
+exports.filterUpworkJobs = (req, res) => {
+  try {
+    const result = filterAndDeduplicateUpworkJobs();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Error filtering jobs', error: error.message });
+  }
+};
 
-// // Normalize and filter
-// const filtered = jobs.map(job => {
-//   const result = {};
-//   for (const field of fields) {
-//     // Special handling for arrays
-//     if (field === 'tags' && Array.isArray(job.tags)) {
-//       result.tags = job.tags.slice(); // copy array
-//     } else if (field === 'skills' && Array.isArray(job.skills)) {
-//       // Flatten skills to just names array
-//       result.skills = job.skills.map(s => s.name);
-//     } else {
-//       result[field] = get(job, field);
-//     }
-//   }
-//   return result;
-// });
 
-// // Write output
-// fs.writeFileSync(outputPath, JSON.stringify(filtered, null, 2), 'utf-8');
-// console.log('Filtered Upwork jobs saved to', outputPath);
+const { exec } = require('child_process');
+const path = require('path');
 
-// const fs = require('fs');
-// const path = require('path');
+exports.scoreUpworkJobs = (req, res) => {
+    const inputPath = path.join(__dirname, '../data/filtered_upwork.json');
+    const outputPath = path.join(__dirname, '../data/final_jobs_upwork.json');
+    const scriptPath = path.join(__dirname, '../python/upwork.py');
 
-// const inputPath = path.join(__dirname, '..', 'data', 'upwork_jobs_raw.json');
-// const outputPath = path.join(__dirname, '..', 'data', 'filtered_upwork.json');
+    exec(`python "${scriptPath}" "${inputPath}" "${outputPath}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error('Error running upwork.py:', error, stderr);
+            return res.status(500).json({ message: 'Error scoring jobs', error: stderr || error.message });
+        }
+        res.json({
+            message: 'Upwork jobs scored successfully',
+            output: outputPath,
+            python_stdout: stdout
+        });
+    });
+};
 
-// const jobs = JSON.parse(fs.readFileSync(inputPath, 'utf-8'));
+const fs = require('fs');
 
-// const normalized = jobs.map(job => ({
-//   jobId: job.id,
-//   title: job.title,
-//   description: job.description,
-//   isContractToHire: job.isContractToHire,
-//   isPaymentMethodVerified: job.isPaymentMethodVerified,
-//   level: job.level,
-//   contractorTier: job.contractorTier,
-//   companyId: job.buyer?.company?.companyId || null,
-//   companyIndustry: job.buyer?.company?.profile?.industry || null,
-//   companyContractDate: job.buyer?.company?.contractDate || null,
-//   buyerScore: job.buyer?.stats?.score ?? null,
-//   buyerTotalAssignments: job.buyer?.stats?.totalAssignments ?? null,
-//   buyerTotalJobsWithHires: job.buyer?.stats?.totalJobsWithHires ?? null,
-//   buyerActiveAssignmentsCount: job.buyer?.stats?.activeAssignmentsCount ?? null,
-//   buyerFeedbackCount: job.buyer?.stats?.feedbackCount ?? null,
-//   buyerOpenJobsCount: job.buyer?.jobs?.openCount ?? null,
-//   buyerPostedJobsCount: job.buyer?.jobs?.postedCount ?? null,
-//   buyerAvgHourlyRate: job.buyer?.avgHourlyJobsRate?.amount ?? null,
-//   minHourlyRate: job.hourly?.min ?? null,
-//   maxHourlyRate: job.hourly?.max ?? null,
-//   hourlyType: job.hourly?.type ?? null,
-//   hourlyWeeks: job.hourly?.duration?.weeks ?? null,
-//   tags: Array.isArray(job.tags) ? job.tags : [],
-//   skills: Array.isArray(job.skills) ? job.skills.map(s => s.name) : [],
-//   minHoursWeek: job.qualifications?.minHoursWeek ?? null,
-//   lastBuyerActivity: job.clientActivity?.lastBuyerActivity ?? null
-// }));
-
-// fs.writeFileSync(outputPath, JSON.stringify(normalized, null, 2), 'utf-8');
-// console.log('Filtered and normalized Upwork jobs saved to', outputPath);
+exports.getUpworkFinalScores = (req, res) => {
+    const outputPath = path.join(__dirname, '../data/final_jobs_upwork.json');
+    try {
+        if (!fs.existsSync(outputPath)) {
+            return res.status(404).json({ message: 'Upwork score file not found. Please run the scoring process first.' });
+        }
+        const data = fs.readFileSync(outputPath, 'utf-8');
+        const jobs = JSON.parse(data);
+        res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ message: 'Error reading upwork score file', error: error.message });
+    }
+};

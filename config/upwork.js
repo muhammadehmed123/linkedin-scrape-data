@@ -7,10 +7,6 @@ const client = new ApifyClient({
 });
 
 // Prepare Actor input
-const input = {
-    "query": "python"
-};
-
 // Run the Actor and wait for it to finish
 const run = await client.actor("jupri/upwork").call(input);
 
@@ -72,43 +68,4 @@ exports.fetchAndSaveJobs = async (req, res) => {
     }
   };
   
-
-data = {
-    "age": 24,
-    "category": [
-        "qa-testing",
-        "ai-machine-learning",
-        "web-development",
-        "mobile-development",
-        "other-software-development",
-        "desktop-application-development",
-        "ecommerce-development",
-        "web-mobile-software-dev"
-    ],
-    "contract_to_hire": false,
-    "dev_dataset_clear": true,
-    "dev_no_strip": false,
-    "fixed": false,
-    "hourly": true,
-    "includes.attachments": false,
-    "includes.history": false,
-    "limit": 100,
-    "location": [
-        "United States",
-        "United Kingdom",
-        "Saudia Arabia",
-        "United Arab Emirates",
-        "Europe"
-    ],
-    "no_hires": false,
-    "payment_verified": false,
-    "previous_clients": false,
-    "sort": "newest",
-    "tier": [
-        "2",
-        "3",
-        "1"
-    ]
-  }
-
 // 📚 Want to learn more 📖? Go to → https://docs.apify.com/api/client/js/docs
