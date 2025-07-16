@@ -1,6 +1,6 @@
-const { getNextRunInfo } = require('../services/apifySchedulerService');
+// const { getNextRunInfo } = require('../services/apifySchedulerService');
 
-exports.getNextRun = (req, res) => {
-  const info = getNextRunInfo();
-  res.json(info);
-};
+// exports.getNextRun = (req, res) => {
+//   const info = getNextRunInfo();
+//   res.json(info);
+// };
