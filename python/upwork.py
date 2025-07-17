@@ -24,7 +24,13 @@ else:
 
 # === Convert to DataFrame ===
 df = pd.json_normalize(jobs)
+# For all numeric columns, fill NaN/None with 0
+for col in df.select_dtypes(include='number').columns:
+    df[col] = df[col].fillna(0)
 
+# For all object (string) columns, fill NaN/None with empty string
+for col in df.select_dtypes(include='object').columns:
+    df[col] = df[col].fillna("")
 # === Preview the structure (optional, for dev only) ===
 # print(f"Loaded {len(df)} job records")
 # print(df.columns.tolist())  # Optional: See all available columns

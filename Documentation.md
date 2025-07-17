@@ -186,3 +186,77 @@ Here is a detailed API documentation for your endpoints, including HTTP methods,
 
 ---
 
+
+
+
+---
+
+# Upwork API Endpoints – Functionality Overview
+
+---
+
+## 1. **Filter and Deduplicate Upwork Jobs**
+**Endpoint:** `GET /api/upwork/filter`  
+**Functionality:**  
+- Reads raw Upwork jobs from a file.
+- Normalizes and deduplicates jobs by jobId.
+- Filters jobs by allowed countries (supports both country names and ISO codes, including "Europe" logic).
+- Saves the filtered jobs to a new file.
+- Returns a summary with counts of total, unique, duplicates removed, excluded by country, and total saved.
+
+---
+
+## 2. **Score Upwork Jobs and Add AI Remarks**
+**Endpoint:** `GET /api/upwork/score`  
+**Functionality:**  
+- Runs a Python script to score filtered jobs using business KPIs.
+- Adds AI-generated remarks to each job.
+- Saves the scored jobs to a new file.
+- Returns a status message and output file path.
+
+---
+
+## 3. **Get Final Scored Upwork Jobs**
+**Endpoint:** `GET /api/upwork/final-score`  
+**Functionality:**  
+- Returns the full list of scored and AI-annotated jobs as a JSON array.
+
+---
+
+## 4. **Save Upwork Jobs to MongoDB (Bulk Save)**
+**Endpoint:** `POST /api/upwork/jobs`  
+**Functionality:**  
+- Accepts an array (or single object) of jobs in the request body.
+- Saves or updates each job in MongoDB by jobId.
+- Returns a message and the count of jobs processed.
+
+---
+
+---
+
+## 5. **Get Upwork Jobs by Date**
+**Endpoint:** `GET /api/upwork/jobs/by-date?date=YYYY-MM-DD`  
+**Functionality:**  
+- Retrieves all jobs created on a specific date from MongoDB.
+- Returns an array of job objects for that date.
+
+---
+
+## 6. **Edit a Job by jobId**
+**Endpoint:** `PUT /api/upwork/jobs/:jobId`  
+**Functionality:**  
+- Updates a job in MongoDB by its jobId.
+- Accepts fields to update in the request body.
+- Returns the updated job object.
+
+---
+
+
+**All endpoints return JSON responses.  
+Authentication is required for batch operations to associate jobs with the correct user.  
+Filtering, scoring, and batch saving are designed to support business analytics and AI-driven workflows.**
+
+---
+
+Let me know if you want this in a different format or with more/less detail!
+
