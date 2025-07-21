@@ -151,5 +151,9 @@ async function runFullPipeline() {
   }
 }
 
-// Schedule to run every day at 17:07 (5:07 PM) server time
-cron.schedule('* 2 * * *', runFullPipeline);
+const cron = require('node-cron');
+
+cron.schedule('*/10 * * * *', () => {
+  console.log('Cron job is running at:', new Date());
+  runFullPipeline();
+});

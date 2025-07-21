@@ -8,8 +8,7 @@ Original file is located at
 
 ## Importing Required Libraries and Loading the Data
 """
-
-
+import math
 import json
 import pandas as pd
 import re
@@ -653,12 +652,29 @@ df['tier'] = df['final_score'].apply(assign_tier)
 # print final results
 print(df[['title', 'final_score', 'tier'] + kpi_columns].head(100))
 
-# Replace NaN with None (null in JSON)
+# Replace NaN/NaT with None (so JSON will use null)
 df = df.where(pd.notnull(df), None)
 
 # Convert to list of dicts
 job_list = df.to_dict(orient='records')
 
+def clean_nans(obj):
+    if isinstance(obj, float) and math.isnan(obj):
+        return None
+    elif isinstance(obj, dict):
+        return {k: clean_nans(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_nans(v) for v in obj]
+    else:
+        return obj
+
+for job in job_list:
+    for k, v in job.items():
+        if isinstance(v, float) and np.isnan(v):
+            job[k] = None
+
+# After you create job_list:
+job_list = [clean_nans(job) for job in job_list]
 # --- Generate AI Remarks ---
 print(">> Generating AI Remarks using RAG...")
 updated_jobs = generate_ai_remark(job_list)
