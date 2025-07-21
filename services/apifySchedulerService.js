@@ -152,7 +152,7 @@ async function runFullPipeline() {
 }
 
 // Schedule to run every day at 17:07 (5:07 PM) server time
-cron.schedule('*/10 * * * *', () => {
+cron.schedule('* 11 * * *', () => {
   console.log('Cron job is running at:', new Date());
   runFullPipeline();
 });
