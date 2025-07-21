@@ -123,7 +123,7 @@ def create_job_excel(job_data, filename="job_data.xlsx"):
     
     # Create DataFrame
     df = pd.DataFrame([flattened_data])
-    
+     
     # Create Excel writer with multiple sheets
     with pd.ExcelWriter(filename, engine='openpyxl') as writer:
         # Main job data sheet

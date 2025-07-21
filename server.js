@@ -3,6 +3,7 @@ require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/database');
 require('./services/apifySchedulerService');
+require('./services/upworkSchedulerService');
 // Connect to database
 connectDB();
 

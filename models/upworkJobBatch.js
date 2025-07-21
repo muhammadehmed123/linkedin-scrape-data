@@ -124,6 +124,41 @@ const UpworkJobSchema = new mongoose.Schema({
   ts_publish: Date,
   ts_sourcing: Date,
 
+  //comment and status
+
+  currentStatus: {
+    type: String,
+    enum: ['not_engaged', 'applied', 'engaged', 'interview', 'offer', 'rejected', 'archived'],
+    default: 'not_engaged'
+  },
+  statusHistory: {
+    type: [
+      {
+        status: {
+          type: String,
+          enum: ['not_engaged', 'applied', 'engaged', 'interview', 'offer', 'rejected', 'archived']
+        },
+        username: String,
+        date: { type: Date, default: Date.now }
+      }
+    ],
+    default: []
+  },
+  comments: {
+    type: [
+      {
+        username: String,
+        comment: String,
+        date: { type: Date, default: Date.now }
+      }
+    ],
+    default: []
+  },
+  ae_comment: {
+    type: String,
+    default: ''
+  },
+  
   // KPI and AI fields
   kpi_budget_attractiveness: mongoose.Schema.Types.Mixed,
   kpi_avg_hourly_rate: mongoose.Schema.Types.Mixed,
