@@ -87,3 +87,10 @@ Here’s a concise documentation for your **Upwork** and **Apify (LinkedIn)** AP
 ---
 
 **Let me know if you want more details on request/response formats for any endpoint!**
+
+
+Warning:
+New token "sqp_f8a21cd4e0358af7e3a7765bbe5389297c5370eb" has been created. Make sure you copy it now, you won't be able to see it again!
+
+
+Analyze "Lead-Project" 1: sqp_eb4d4016138b61a392f8e43b07eb3143fbfb9d49

@@ -306,7 +306,9 @@ exports.updateJobStatusAndComment = async (req, res) => {
   try {
     const userId = req.user._id;
     const { jobId } = req.params;
-    const { status, comment } = req.body;
+    // const { status, comment } = req.body;
+    const { status, comment, username,ae_comment } = req.body;
+
 
     if (!status && !comment) {
       return res.status(400).json({ message: 'At least one of status or comment is required.' });
@@ -342,12 +344,32 @@ exports.updateJobStatusAndComment = async (req, res) => {
     }
 
     // Update status and/or comment
-    if (status) jobToUpdate.status = status;
-    if (comment) {
-      if (!Array.isArray(jobToUpdate.comments)) jobToUpdate.comments = [];
-      jobToUpdate.comments.push(comment);
+    // if (status) jobToUpdate.status = status;
+    if (status && username) {
+      jobToUpdate.currentStatus = status;
+      if (!Array.isArray(jobToUpdate.statusHistory)) jobToUpdate.statusHistory = [];
+      jobToUpdate.statusHistory.push({
+        status,
+        username,
+        date: new Date()
+      });
     }
-
+    
+    // if (comment) {
+    //   if (!Array.isArray(jobToUpdate.comments)) jobToUpdate.comments = [];
+    //   jobToUpdate.comments.push(comment);
+    // }
+    if (comment && username) {
+      if (!Array.isArray(jobToUpdate.comments)) jobToUpdate.comments = [];
+      jobToUpdate.comments.push({
+        username,
+        comment,
+        date: new Date()
+      });
+    }
+    if (ae_comment !== undefined) {
+      jobToUpdate.ae_comment = ae_comment;
+    }
     // Save the updated userJobBatch
     await userJobBatch.save();
     return res.json({ message: 'Job updated successfully.' });

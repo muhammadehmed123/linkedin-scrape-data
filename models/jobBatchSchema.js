@@ -42,11 +42,54 @@ const JobSchema = new mongoose.Schema({
     enum: ['not_engaged', 'applied', 'engaged', 'interview', 'offer', 'rejected', 'archived'],
     default: 'not_engaged'
   },
-  comments: {
-    type: [String],
-    default: []
-  },
-
+  // comments: {
+  //   type: [String],
+  //   default: []
+  // },
+  // comments: {
+  //   type: [
+  //     {
+  //       username: String,
+  //       comment: String,
+  //       date: { type: Date, default: Date.now }
+  //     }
+  //   ],
+  //   default: []
+  // },
+// ... existing code ...
+currentStatus: {
+  type: String,
+  enum: ['not_engaged', 'applied', 'engaged', 'interview', 'offer', 'rejected', 'archived'],
+  default: 'not_engaged'
+},
+statusHistory: {
+  type: [
+    {
+      status: {
+        type: String,
+        enum: ['not_engaged', 'applied', 'engaged', 'interview', 'offer', 'rejected', 'archived']
+      },
+      username: String,
+      date: { type: Date, default: Date.now }
+    }
+  ],
+  default: []
+},
+comments: {
+  type: [
+    {
+      username: String,
+      comment: String,
+      date: { type: Date, default: Date.now }
+    }
+  ],
+  default: []
+},
+ae_comment: {
+  type: String,
+  default: ''
+},
+// ... existing code ...
   // KPI fields
   kpi_jd_quality: mongoose.Schema.Types.Mixed,
   kpi_domain_fit: mongoose.Schema.Types.Mixed,
