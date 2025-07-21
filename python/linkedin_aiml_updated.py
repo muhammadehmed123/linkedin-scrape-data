@@ -17,7 +17,7 @@ import string
 import os
 from datetime import datetime, timezone
 from rag_remark_generator import generate_ai_remark
-
+import numpy as np
 
 # from IPython.print import print
 # file_path = r'C:\Users\Dell\Desktop\linkedin-scrape-data\data\apify_jobs_raw.json'  # <-- "r" handles backslashes'  # Use relative path for Node.js compatibility
