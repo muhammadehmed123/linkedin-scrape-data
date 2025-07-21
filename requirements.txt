@@ -3,5 +3,4 @@ pinecone-client
 tqdm
 pandas
 python-dotenv
-uuid
 numpy
