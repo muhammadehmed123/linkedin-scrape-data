@@ -152,7 +152,7 @@ async function runFullPipeline() {
 }
 
 
-cron.schedule('0 14 * * *', () => {
+cron.schedule('6 15 * * *', () => {
   console.log('Cron job is running at:', new Date());
   runFullPipeline();
 });
