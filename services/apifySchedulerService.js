@@ -151,9 +151,8 @@ async function runFullPipeline() {
   }
 }
 
-const cron = require('node-cron');
 
-cron.schedule('*/10 * * * *', () => {
+cron.schedule('0 11 * * *', () => {
   console.log('Cron job is running at:', new Date());
   runFullPipeline();
 });

@@ -1,0 +1,6 @@
+numpy
+pandas
+tqdm
+openai
+pinecone-client
+python-dotenv
