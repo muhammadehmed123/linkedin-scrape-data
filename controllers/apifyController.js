@@ -384,11 +384,141 @@ exports.updateJobStatusAndComment = async (req, res) => {
 
 // ...existing code...
 
+// exports.exportJobsByDateToExcel = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const userJobBatch = await UserJobBatch.findOne({ userId });
+
+//     if (!userJobBatch || !userJobBatch.batches.length) {
+//       return res.status(404).json({ message: 'No job batches found for user.' });
+//     }
+
+//     // Get the latest batch by timestamp
+//     const latestBatch = userJobBatch.batches.reduce((latest, current) =>
+//       !latest || new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest, null
+//     );
+//     if (!latestBatch || !latestBatch.jobs.length) {
+//       return res.status(404).json({ message: 'No jobs found in the latest batch.' });
+//     }
+
+//     const jobs = latestBatch.jobs;
+
+//     // Collect all unique keys from all jobs for dynamic columns
+//     const allKeys = Array.from(
+//       jobs.reduce((set, job) => {
+//         Object.keys(job).forEach(key => set.add(key));
+//         return set;
+//       }, new Set())
+//     );
+
+//     const workbook = new ExcelJS.Workbook();
+//     const worksheet = workbook.addWorksheet('Latest Batch Jobs');
+
+//     // Set columns dynamically
+//     worksheet.columns = allKeys.map(key => ({
+//       header: key,
+//       key: key,
+//       width: 25
+//     }));
+
+//     // Add job rows
+//     jobs.forEach(job => {
+//       // Flatten nested objects for Excel (e.g., statusHistory, comments)
+//       const row = {};
+//       allKeys.forEach(key => {
+//         const value = job[key];
+//         if (Array.isArray(value)) {
+//           row[key] = JSON.stringify(value);
+//         } else if (typeof value === 'object' && value !== null) {
+//           row[key] = JSON.stringify(value);
+//         } else {
+//           row[key] = value;
+//         }
+//       });
+//       worksheet.addRow(row);
+//     });
+
+//     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//     res.setHeader('Content-Disposition', 'attachment; filename=latest_batch_jobs.xlsx');
+
+//     await workbook.xlsx.write(res);
+//     res.end();
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Error generating Excel file.' });
+//   }
+// };
+
+// exports.exportJobsByDateToExcel = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const userJobBatch = await UserJobBatch.findOne({ userId });
+
+//     if (!userJobBatch || !userJobBatch.batches.length) {
+//       return res.status(404).json({ message: 'No job batches found for user.' });
+//     }
+
+//     // Get the latest batch by timestamp
+//     const latestBatch = userJobBatch.batches.reduce((latest, current) =>
+//       !latest || new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest, null
+//     );
+//     if (!latestBatch || !latestBatch.jobs.length) {
+//       return res.status(404).json({ message: 'No jobs found in the latest batch.' });
+//     }
+
+//     const jobs = latestBatch.jobs;
+
+//     // Collect all unique keys from all jobs for dynamic columns
+//     const allKeys = Array.from(
+//       jobs.reduce((set, job) => {
+//         Object.keys(job).forEach(key => set.add(key));
+//         return set;
+//       }, new Set())
+//     );
+
+//     const workbook = new ExcelJS.Workbook();
+//     const worksheet = workbook.addWorksheet('Latest Batch Jobs');
+
+//     // Set columns dynamically
+//     worksheet.columns = allKeys.map(key => ({
+//       header: key,
+//       key: key,
+//       width: 25
+//     }));
+
+//     // Add job rows
+//     jobs.forEach(job => {
+//       // Flatten nested objects for Excel (e.g., statusHistory, comments)
+//       const row = {};
+//       allKeys.forEach(key => {
+//         const value = job[key];
+//         if (Array.isArray(value)) {
+//           row[key] = JSON.stringify(value);
+//         } else if (typeof value === 'object' && value !== null) {
+//           row[key] = JSON.stringify(value);
+//         } else {
+//           row[key] = value;
+//         }
+//       });
+//       worksheet.addRow(row);
+//     });
+
+//     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+//     res.setHeader('Content-Disposition', 'attachment; filename=latest_batch_jobs.xlsx');
+
+//     await workbook.xlsx.write(res);
+//     res.end();
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Error generating Excel file.' });
+//   }
+// };
+
+
 exports.exportJobsByDateToExcel = async (req, res) => {
   try {
     const userId = req.user._id;
     const userJobBatch = await UserJobBatch.findOne({ userId });
-
     if (!userJobBatch || !userJobBatch.batches.length) {
       return res.status(404).json({ message: 'No job batches found for user.' });
     }
@@ -403,43 +533,58 @@ exports.exportJobsByDateToExcel = async (req, res) => {
 
     const jobs = latestBatch.jobs;
 
-    // Collect all unique keys from all jobs for dynamic columns
-    const allKeys = Array.from(
-      jobs.reduce((set, job) => {
-        Object.keys(job).forEach(key => set.add(key));
-        return set;
-      }, new Set())
-    );
+    // Define columns as per your requirements
+    const columns = [
+      { header: 'ZoomInfo Contact ID', key: 'id', width: 20 },
+      { header: 'Job Title', key: 'title', width: 30 },
+      { header: 'Management Level', key: 'employmentType', width: 20 },
+      { header: 'Job Start Date', key: 'postedDate', width: 20 },
+      { header: 'Job Function', key: 'descriptionText', width: 40 },
+      { header: 'LinkedIn Contact Profile URL', key: 'linkedinUrl', width: 40 },
+      { header: 'Email Address', key: 'email', width: 30 }, // Not present in schema
+      { header: 'Person City', key: 'company_city', width: 20 },
+      { header: 'Country', key: 'company_country', width: 20 },
+      { header: 'Company Name', key: 'company_name', width: 30 },
+      { header: 'Website', key: 'company_website', width: 30 },
+      { header: 'Employees', key: 'company_employeeCount', width: 15 },
+      { header: 'Employee Range', key: 'employee_range', width: 15 }, // Not present, can be derived
+      { header: 'Primary Industry', key: 'company_industry', width: 20 },
+      { header: 'LinkedIn Company Profile URL', key: 'company_linkedinUrl', width: 40 },
+      { header: 'Company City', key: 'company_city', width: 20 },
+      { header: 'Company State', key: 'company_state', width: 20 }
+    ];
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Latest Batch Jobs');
+    const worksheet = workbook.addWorksheet('Jobs');
 
-    // Set columns dynamically
-    worksheet.columns = allKeys.map(key => ({
-      header: key,
-      key: key,
-      width: 25
-    }));
+    worksheet.columns = columns;
 
     // Add job rows
     jobs.forEach(job => {
-      // Flatten nested objects for Excel (e.g., statusHistory, comments)
-      const row = {};
-      allKeys.forEach(key => {
-        const value = job[key];
-        if (Array.isArray(value)) {
-          row[key] = JSON.stringify(value);
-        } else if (typeof value === 'object' && value !== null) {
-          row[key] = JSON.stringify(value);
-        } else {
-          row[key] = value;
-        }
+      const company = job.company || {};
+      const location = (company.locations && company.locations[0]) || {};
+      worksheet.addRow({
+        id: job.id,
+        title: job.title,
+        employmentType: job.employmentType,
+        postedDate: job.postedDate ? job.postedDate.toISOString().split('T')[0] : '',
+        descriptionText: job.descriptionText,
+        linkedinUrl: job.linkedinUrl,
+        email: '', // Not present in schema
+        company_city: location.city || '',
+        company_country: location.country || '',
+        company_name: company.name || '',
+        company_website: company.website || '',
+        company_employeeCount: company.employeeCount || '',
+        employee_range: '', // Not present, can be derived from employeeCount
+        company_industry: (company.industries && company.industries[0]) || '',
+        company_linkedinUrl: company.linkedinUrl || '',
+        company_state: location.state || ''
       });
-      worksheet.addRow(row);
     });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=latest_batch_jobs.xlsx');
+    res.setHeader('Content-Disposition', 'attachment; filename=custom_jobs.xlsx');
 
     await workbook.xlsx.write(res);
     res.end();
