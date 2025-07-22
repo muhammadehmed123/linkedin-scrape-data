@@ -307,11 +307,10 @@ exports.updateJobStatusAndComment = async (req, res) => {
     const userId = req.user._id;
     const { jobId } = req.params;
     // const { status, comment } = req.body;
-    const { status, comment, username,ae_comment } = req.body;
+    const { status, comment, username, ae_comment } = req.body;
 
-
-    if (!status && !comment) {
-      return res.status(400).json({ message: 'At least one of status or comment is required.' });
+    if (!status && !comment && ae_comment === undefined) {
+      return res.status(400).json({ message: 'At least one of status, comment, or ae_comment is required.' });
     }
 
     // Find the user's job batches

@@ -256,42 +256,109 @@ exports.getJobsByDate = async (req, res) => {
 //     res.status(500).json({ message: 'Error updating job', error: error.message });
 //   }
 // };
+// exports.editJobById = async (req, res) => {
+//   try {
+//     const userId = req.user._id; // Provided by auth middleware
+//     const { jobId } = req.params;
+//     const updateFields = req.body;
+
+//     // Find the user's batches
+//     const userBatches = await UpworkUserJobBatch.findOne({ userId });
+//     if (!userBatches || !userBatches.batches.length) {
+//       return res.status(404).json({ message: 'No batches found for user.' });
+//     }
+
+//     // Search batches in reverse (latest first)
+//     let jobFound = false;
+//     for (let i = userBatches.batches.length - 1; i >= 0; i--) {
+//       const batch = userBatches.batches[i];
+//       const jobIndex = batch.jobs.findIndex(job => job.jobId === jobId);
+//       if (jobIndex !== -1) {
+//         // Update the job fields
+//         Object.assign(batch.jobs[jobIndex], updateFields);
+//         jobFound = true;
+//         break; // Only update the most recent batch
+//       }
+//     }
+
+//     if (!jobFound) {
+//       return res.status(404).json({ message: 'Job not found in any batch.' });
+//     }
+
+//     await userBatches.save();
+//     res.json({ message: 'Job updated successfully.' });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error updating job', error: error.message });
+//   }
+// };
 exports.editJobById = async (req, res) => {
   try {
-    const userId = req.user._id; // Provided by auth middleware
+    const userId = req.user._id;
     const { jobId } = req.params;
-    const updateFields = req.body;
+    const { status, comment, username, ae_comment } = req.body;
 
-    // Find the user's batches
-    const userBatches = await UpworkUserJobBatch.findOne({ userId });
-    if (!userBatches || !userBatches.batches.length) {
-      return res.status(404).json({ message: 'No batches found for user.' });
+    if (!status && !comment && ae_comment === undefined) {
+      return res.status(400).json({ message: 'At least one of status, comment, or ae_comment is required.' });
     }
 
-    // Search batches in reverse (latest first)
-    let jobFound = false;
-    for (let i = userBatches.batches.length - 1; i >= 0; i--) {
-      const batch = userBatches.batches[i];
-      const jobIndex = batch.jobs.findIndex(job => job.jobId === jobId);
-      if (jobIndex !== -1) {
-        // Update the job fields
-        Object.assign(batch.jobs[jobIndex], updateFields);
-        jobFound = true;
-        break; // Only update the most recent batch
+    // Find the user's job batches
+    const userJobBatch = await UserJobBatch.findOne({ userId });
+    if (!userJobBatch) {
+      return res.status(404).json({ message: 'No job batches found for user.' });
+    }
+
+    // Find the latest batch (by timestamp) that contains the job
+    let latestBatchWithJob = null;
+    let jobToUpdate = null;
+
+    userJobBatch.batches.forEach((batch) => {
+      const job = batch.jobs.find(j => j.id === jobId);
+      if (job) {
+        if (
+          !latestBatchWithJob ||
+          new Date(batch.timestamp) > new Date(latestBatchWithJob.timestamp)
+        ) {
+          latestBatchWithJob = batch;
+          jobToUpdate = job;
+        }
       }
+    });
+
+    if (!jobToUpdate) {
+      return res.status(404).json({ message: 'Job not found for user.' });
     }
 
-    if (!jobFound) {
-      return res.status(404).json({ message: 'Job not found in any batch.' });
+    // Update status and/or comment
+    if (status && username) {
+      jobToUpdate.currentStatus = status;
+      if (!Array.isArray(jobToUpdate.statusHistory)) jobToUpdate.statusHistory = [];
+      jobToUpdate.statusHistory.push({
+        status,
+        username,
+        date: new Date()
+      });
     }
 
-    await userBatches.save();
-    res.json({ message: 'Job updated successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating job', error: error.message });
+    if (comment && username) {
+      if (!Array.isArray(jobToUpdate.comments)) jobToUpdate.comments = [];
+      jobToUpdate.comments.push({
+        username,
+        comment,
+        date: new Date()
+      });
+    }
+
+    if (ae_comment !== undefined) {
+      jobToUpdate.ae_comment = ae_comment;
+    }
+
+    await userJobBatch.save();
+    return res.json({ message: 'Upwork job updated successfully.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
-
 exports.fetchAndSaveJobs = async (req, res) => {
     try {
         const input = req.body; // Accepts JSON input from POST
