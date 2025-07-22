@@ -27,5 +27,11 @@ router.get('/jobs-by-date', authMiddleware, apifyController.getJobsByDate);
 // Update job status and comments in a user's batch
 router.patch('/jobs/:jobId', authMiddleware, apifyController.updateJobStatusAndComment);
 
+// ...existing code...
+
+// Export jobs-by-date data to Excel
+router.get('/jobs-by-date/excel', authMiddleware, apifyController.exportJobsByDateToExcel);
+
+// ...existing code...
 
 module.exports = router;

@@ -1,5 +1,7 @@
 const path = require('path');
 const fs = require('fs');
+const ExcelJS = require('exceljs');
+
 const { fetchJobsFromApify } = require('../config/apifyService');
 const { runAimlProcessing } = require('../services/aimlProcessService');
 const UserJobBatch = require('../models/jobBatchSchema');
@@ -375,5 +377,74 @@ exports.updateJobStatusAndComment = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+
+
+// ...existing code...
+
+exports.exportJobsByDateToExcel = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const userJobBatch = await UserJobBatch.findOne({ userId });
+
+    if (!userJobBatch || !userJobBatch.batches.length) {
+      return res.status(404).json({ message: 'No job batches found for user.' });
+    }
+
+    // Get the latest batch by timestamp
+    const latestBatch = userJobBatch.batches.reduce((latest, current) =>
+      !latest || new Date(current.timestamp) > new Date(latest.timestamp) ? current : latest, null
+    );
+    if (!latestBatch || !latestBatch.jobs.length) {
+      return res.status(404).json({ message: 'No jobs found in the latest batch.' });
+    }
+
+    const jobs = latestBatch.jobs;
+
+    // Collect all unique keys from all jobs for dynamic columns
+    const allKeys = Array.from(
+      jobs.reduce((set, job) => {
+        Object.keys(job).forEach(key => set.add(key));
+        return set;
+      }, new Set())
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Latest Batch Jobs');
+
+    // Set columns dynamically
+    worksheet.columns = allKeys.map(key => ({
+      header: key,
+      key: key,
+      width: 25
+    }));
+
+    // Add job rows
+    jobs.forEach(job => {
+      // Flatten nested objects for Excel (e.g., statusHistory, comments)
+      const row = {};
+      allKeys.forEach(key => {
+        const value = job[key];
+        if (Array.isArray(value)) {
+          row[key] = JSON.stringify(value);
+        } else if (typeof value === 'object' && value !== null) {
+          row[key] = JSON.stringify(value);
+        } else {
+          row[key] = value;
+        }
+      });
+      worksheet.addRow(row);
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=latest_batch_jobs.xlsx');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error generating Excel file.' });
   }
 };
